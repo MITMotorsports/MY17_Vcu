@@ -50,6 +50,9 @@ Frame Can_Controller::read() {
   Frame frame;
   uint8_t response = delegate.readMsgBuf(&frame.len, frame.body);
   if (response != CAN_OK) {
+    if (DEBUG) {
+      Serial.println("Error when reading");
+    }
     // TODO log that there has been a read error
   }
   frame.id = delegate.getCanId();
@@ -94,6 +97,9 @@ String Can_Controller::canResponseToString(uint8_t response) {
 void Can_Controller::write(Frame f) {
   uint8_t response = delegate.sendMsgBuf(f.id, 0, f.len, f.body);
   if (response != CAN_OK) {
+    if (DEBUG) {
+      Serial.println("Error when writing");
+    }
     // TODO log that there has been a write error
   }
 }
