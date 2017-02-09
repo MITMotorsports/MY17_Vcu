@@ -40,6 +40,9 @@ void Can_Controller::begin() {
       Serial.println(canResponseToString(response));
     }
   }
+  else {
+    Serial.println("Successfully initialized CAN");
+  }
 }
 
 bool Can_Controller::msgAvailable() {

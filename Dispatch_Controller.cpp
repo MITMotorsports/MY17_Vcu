@@ -59,8 +59,8 @@ void Dispatch_Controller::begin() {
   // Start event loop
   SoftTimer.add(&stepTask);
   Serial.println("Started VCU");
-  Frame start = {.id=4, .body={10}, .len=1};
-  CAN().write(start);
+  // Frame start = {.id=4, .body={10}, .len=1};
+  // CAN().write(start);
 }
 
 // Must define instance prior to use
