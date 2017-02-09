@@ -21,18 +21,15 @@ bool done = false;
 bool printed = false;
 uint32_t count_1 = 0;
 uint32_t count_2 = 0;
+uint32_t count_total = 0;
 
 uint32_t elapsed_time = 0;
+uint32_t read_time = 0;
 
 // Handle messages as fast as possible
 void dispatchPointer(Task*) {
   if (!done) {
-    uint32_t start_time = micros();
     Dispatcher().dispatch();
-    uint32_t end_time = micros();
-    if (end_time > start_time) {
-      elapsed_time += end_time - start_time;
-    }
   } else if (!printed) {
     printed = true;
     Serial.print("msg_1: ");
@@ -40,7 +37,9 @@ void dispatchPointer(Task*) {
     Serial.print(", msg_2: ");
     Serial.print(count_2);
     Serial.print(", elapsed: ");
-    Serial.println(elapsed_time);
+    Serial.print(elapsed_time);
+    Serial.print(", read: ");
+    Serial.println(read_time);
   }
 }
 Task stepTask(0, dispatchPointer);
@@ -52,11 +51,16 @@ void Dispatch_Controller::begin() {
   }
   begun = true;
 
+  Serial.begin(115200);
+
   // Initialize controllers
   CAN().begin();
 
   // Start event loop
   SoftTimer.add(&stepTask);
+  Serial.println("Started VCU");
+  Frame start = {.id=4, .body={10}, .len=1};
+  CAN().write(start);
 }
 
 // Must define instance prior to use
@@ -76,7 +80,10 @@ Dispatch_Controller& Dispatcher() {
 
 
 void Dispatch_Controller::dispatch() {
+  count_total++;
+  uint32_t start_time_elapsed = micros();
   if (CAN().msgAvailable()) {
+    uint32_t start_time_read = micros();
     Frame frame = CAN().read();
     switch(frame.id) {
       case ID_1:
@@ -99,5 +106,13 @@ void Dispatch_Controller::dispatch() {
         done = true;
         break;
     }
+    uint32_t end_time_read = micros();
+    if (end_time_read > start_time_read) {
+      read_time += end_time_read - start_time_read;
+    }
+  }
+  uint32_t end_time_elapsed = micros();
+  if (end_time_elapsed > start_time_elapsed) {
+    elapsed_time += end_time_elapsed - start_time_elapsed;
   }
 }

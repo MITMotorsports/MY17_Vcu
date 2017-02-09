@@ -31,13 +31,13 @@ void Can_Controller::begin() {
 
   // Set interrupt pin.
   // DON'T set MCP_CS: mcp_can library does it for us
-  pinMode(MCP_INT_PIN, INPUT);
 
   uint8_t response = delegate.begin(CAN_500KBPS);
-  if (delegate.begin(CAN_500KBPS) != CAN_OK) {
+  if (response != CAN_OK) {
     // TODO log that there has been a begin error
     if (DEBUG) {
-      Serial.println("Error when beginning");
+      Serial.print("Error when initializing: ");
+      Serial.println(canResponseToString(response));
     }
   }
 }
@@ -51,7 +51,8 @@ Frame Can_Controller::read() {
   uint8_t response = delegate.readMsgBuf(&frame.len, frame.body);
   if (response != CAN_OK) {
     if (DEBUG) {
-      Serial.println("Error when reading");
+      Serial.print("Error when reading: ");
+      Serial.println(canResponseToString(response));
     }
     // TODO log that there has been a read error
   }
@@ -98,7 +99,8 @@ void Can_Controller::write(Frame f) {
   uint8_t response = delegate.sendMsgBuf(f.id, 0, f.len, f.body);
   if (response != CAN_OK) {
     if (DEBUG) {
-      Serial.println("Error when writing");
+      Serial.print("Error when writing: ");
+      Serial.println(canResponseToString(response));
     }
     // TODO log that there has been a write error
   }
