@@ -2,6 +2,7 @@
 #define DISPATCH_CONTROLLER_H
 
 #include <Arduino.h>
+#include <RTClib.h>
 
 class Dispatch_Controller {
   public:
@@ -15,6 +16,7 @@ class Dispatch_Controller {
     void processCan();
     void processSeg();
     String toBitstring(uint8_t reg);
+    RTC_DS1307 rtc;
 };
 
 Dispatch_Controller& Dispatcher();

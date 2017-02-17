@@ -4,6 +4,7 @@
 #include <SoftTimer.h>
 #include <DelayRun.h>
 #include <Debouncer.h>
+#include <RTClib.h>
 
 #include "Can_Controller.h"
 #include "Seg_Display.h"
@@ -56,10 +57,13 @@ void Dispatch_Controller::begin() {
   delay(50);
 
   // Initialize controllers
-  // TODO re-enable
   CAN().begin();
 
+  rtc.begin();
   Seg_Display::begin();
+
+  // TODO set this when wanting to initialize
+  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
 
   // Start event loop
   SoftTimer.add(&stepTask);
