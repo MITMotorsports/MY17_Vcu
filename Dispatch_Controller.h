@@ -1,6 +1,8 @@
 #ifndef DISPATCH_CONTROLLER_H
 #define DISPATCH_CONTROLLER_H
 
+#include <Arduino.h>
+
 class Dispatch_Controller {
   public:
     static Dispatch_Controller& getInstance();
@@ -10,6 +12,9 @@ class Dispatch_Controller {
     Dispatch_Controller();
     static Dispatch_Controller *instance;
     bool begun;
+    void processCan();
+    void processSeg();
+    String toBitstring(uint8_t reg);
 };
 
 Dispatch_Controller& Dispatcher();

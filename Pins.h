@@ -7,6 +7,11 @@
 // const int MCP_INT_PIN = 2; // PE4, INT4, OC3B, pin_6
 const int MCP_CS_PIN = 53; // PB0, PCINT0, SS, pin_19
 
-// IMPORTANT: If you change any of these four pins, you must update the Rtd_Controller::setEnablePins function and the Rtd_Controller::begin function
+#define SEG_DISPLAY_REG PORTJ
+const uint8_t DISP_A = PJ3;
+const uint8_t DISP_B = PJ6;
+const uint8_t DISP_C = PJ5;
+const uint8_t DISP_D = PJ4;
+
 #endif
 
