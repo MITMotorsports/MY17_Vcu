@@ -3,7 +3,6 @@
  * My idea is to implement this as a 10ms period event that logs certain things in a multiple of 10ms
  * (i.e. battery events might be logged with a 100ms resolution but control events could be 20ms and * faults could be 1000ms).
  *
- * Actually sequence flow should go
 
   Actually sequence flow should go as follows:
 

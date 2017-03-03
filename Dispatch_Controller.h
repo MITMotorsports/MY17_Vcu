@@ -13,10 +13,7 @@ class Dispatch_Controller {
     Dispatch_Controller();
     static Dispatch_Controller *instance;
     bool begun;
-    void processCan();
-    void processSeg();
-    String toBitstring(uint8_t reg);
-    RTC_DS1307 rtc;
+    void processCanInputs();
 };
 
 Dispatch_Controller& Dispatcher();
