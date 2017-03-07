@@ -13,5 +13,10 @@ const uint8_t DISP_B = PJ6;
 const uint8_t DISP_C = PJ5;
 const uint8_t DISP_D = PJ4;
 
+const int VCU_SHUTDOWN_PIN = 11; // PB5, PCINT5, OC1A, pin_24
+const int PRECHARGE_PIN = 12; // PB6, PCINT6, OC1B, pin_25
+
+const int MC_ENABLE_PIN = 65; //PK3, PCINT19, ADC11/A11, pin_86
+
 #endif
 

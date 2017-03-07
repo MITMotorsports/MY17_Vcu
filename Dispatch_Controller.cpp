@@ -35,6 +35,11 @@ void Dispatch_Controller::begin() {
   CAN().begin();
   Seg_Display::begin();
 
+  // Set precharge pins to high and VCU pin to high
+  pinMode(VCU_SHUTDOWN_PIN, OUTPUT);
+  pinMode(PRECHARGE_PIN, OUTPUT);
+  pinMode(MC_ENABLE_PIN, OUTPUT);
+
   // Start event loop
   SoftTimer.add(&stepTask);
   Serial.println("Started VCU");
@@ -60,6 +65,9 @@ const uint32_t DELAY = 1000000;
 
 void Dispatch_Controller::dispatch() {
   processCanInputs();
+  digitalWrite(VCU_SHUTDOWN_PIN, HIGH);
+  digitalWrite(PRECHARGE_PIN, HIGH);
+  digitalWrite(MC_ENABLE_PIN, HIGH);
 }
 
 void Dispatch_Controller::processCanInputs() {

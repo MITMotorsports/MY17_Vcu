@@ -11,7 +11,6 @@ class Seg_Display {
   private:
     static uint8_t numberToPort(uint8_t number);
     static void setRegister(uint8_t number);
-
 };
 
 #endif //SEG_DISPLAY_H
