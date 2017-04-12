@@ -40,6 +40,10 @@ void Dispatch_Controller::begin() {
   pinMode(PRECHARGE_PIN, OUTPUT);
   pinMode(MC_ENABLE_PIN, OUTPUT);
 
+  digitalWrite(VCU_SHUTDOWN_PIN, HIGH);
+  digitalWrite(PRECHARGE_PIN, HIGH);
+  digitalWrite(MC_ENABLE_PIN, LOW);
+
   // Start event loop
   SoftTimer.add(&stepTask);
   Serial.println("Started VCU");
@@ -67,7 +71,6 @@ void Dispatch_Controller::dispatch() {
   processCanInputs();
   digitalWrite(VCU_SHUTDOWN_PIN, HIGH);
   digitalWrite(PRECHARGE_PIN, HIGH);
-  digitalWrite(MC_ENABLE_PIN, HIGH);
 }
 
 void Dispatch_Controller::processCanInputs() {
@@ -75,4 +78,12 @@ void Dispatch_Controller::processCanInputs() {
     return;
   }
   Frame frame = CAN().read();
+  if (frame.id == 0x69) {
+    uint8_t first = frame.body[0];
+    if (first == 1) {
+      digitalWrite(MC_ENABLE_PIN, HIGH);
+    } else if (first == 0) {
+      digitalWrite(MC_ENABLE_PIN, LOW);
+    }
+  }
 }
