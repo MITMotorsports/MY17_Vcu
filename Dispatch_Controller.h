@@ -1,21 +1,13 @@
 #ifndef DISPATCH_CONTROLLER_H
 #define DISPATCH_CONTROLLER_H
 
-#include <Arduino.h>
-#include <RTClib.h>
+#include <stdbool.h>
 
-class Dispatch_Controller {
-  public:
-    static Dispatch_Controller& getInstance();
-    void begin();
-    void dispatch();
-  private:
-    Dispatch_Controller();
-    static Dispatch_Controller *instance;
-    bool begun;
-    void processCanInputs();
-};
+#include <SoftTimer.h>
+#include <DelayRun.h>
+#include <Debouncer.h>
 
-Dispatch_Controller& Dispatcher();
+void Dispatch_begin();
+void Dispatch_run(Task*);
 
 #endif // DISPATCH_CONTROLLER_H

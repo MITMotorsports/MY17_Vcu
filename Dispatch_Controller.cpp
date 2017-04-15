@@ -1,89 +1,71 @@
 #include "Dispatch_Controller.h"
 
 //Magic timing library stuff
-#include <SoftTimer.h>
-#include <DelayRun.h>
-#include <Debouncer.h>
-#include <RTClib.h>
+#include <MY17_Can_Library.h>
+#include <MY17_Can_Library_Test.h>
 
-#include "Can_Controller.h"
 #include "Seg_Display.h"
-
-Dispatch_Controller::Dispatch_Controller()
-: begun(false)
-{
-
-}
-
-// Handle messages as fast as possible
-void dispatchPointer(Task*) {
-  Dispatcher().dispatch();
-}
-Task stepTask(0, dispatchPointer);
-
-void Dispatch_Controller::begin() {
-  //Make idempotent
-  if(begun) {
-    return;
-  }
-  begun = true;
-
-  Serial.begin(115200);
-  delay(50);
-
-  // Initialize controllers
-  CAN().begin();
-  Seg_Display::begin();
-
-  // Set precharge pins to high and VCU pin to high
-  pinMode(VCU_SHUTDOWN_PIN, OUTPUT);
-  pinMode(PRECHARGE_PIN, OUTPUT);
-  pinMode(MC_ENABLE_PIN, OUTPUT);
-
-  digitalWrite(VCU_SHUTDOWN_PIN, HIGH);
-  digitalWrite(PRECHARGE_PIN, HIGH);
-  digitalWrite(MC_ENABLE_PIN, LOW);
-
-  // Start event loop
-  SoftTimer.add(&stepTask);
-  Serial.println("Started VCU");
-}
-
-// Must define instance prior to use
-Dispatch_Controller* Dispatch_Controller::instance = NULL;
-
-Dispatch_Controller& Dispatch_Controller::getInstance() {
-  if (!instance) {
-    instance = new Dispatch_Controller();
-    instance->begin();
-  }
-  return *instance;
-}
-
-Dispatch_Controller& Dispatcher() {
-  return Dispatch_Controller::getInstance();
-}
+#include "Pin_Manager.h"
+#include "Pins.h"
 
 uint32_t last_segment = 0;
 const uint32_t DELAY = 1000000;
 
-void Dispatch_Controller::dispatch() {
-  processCanInputs();
-  digitalWrite(VCU_SHUTDOWN_PIN, HIGH);
-  digitalWrite(PRECHARGE_PIN, HIGH);
+/******* BEGIN forward declarations ***********/
+void process_can_inputs();
+void process_pin_inputs();
+
+void process_can_outputs();
+
+void can_test_print(const char * print);
+
+Task Task_Dispatch_run(0, Dispatch_run);
+/******** END forward declarations ***********/
+
+void Dispatch_begin() {
+  Pin_Manager::setup_pins();
+  Serial.begin(115200);
+  delay(50);
+
+  Can_Init(500000);
+  Can_All_Tests(can_test_print);
+
+  // Initialize controllers
+  Seg_Display::begin();
+
+  // Start event loop
+  SoftTimer.add(&Task_Dispatch_run);
+  Serial.println("Started VCU");
 }
 
-void Dispatch_Controller::processCanInputs() {
-  if (!CAN().msgAvailable()) {
+void Dispatch_run(Task*) {
+  process_can_inputs();
+}
+
+void process_can_inputs() {
+  Can_MsgID_T msgID = Can_MsgType();
+  if (msgID == Can_No_Msg) {
     return;
   }
-  Frame frame = CAN().read();
-  if (frame.id == 0x69) {
-    uint8_t first = frame.body[0];
-    if (first == 1) {
-      digitalWrite(MC_ENABLE_PIN, HIGH);
-    } else if (first == 0) {
-      digitalWrite(MC_ENABLE_PIN, LOW);
+  if (msgID == Can_FrontCanNode_DriverOutput_Msg) {
+      Can_FrontCanNode_DriverOutput_T result;
+      Can_FrontCanNode_DriverOutput_Read(&result);
+  }
+  else if (msgID == Can_Unknown_Msg) {
+    Frame frame;
+    Can_RawRead(&frame);
+    if (frame.id == 0x69) {
+      uint8_t first = frame.data[0];
+      if (first == 1) {
+        digitalWrite(MC_ENABLE_PIN_OUT, HIGH);
+      } else if (first == 0) {
+        digitalWrite(MC_ENABLE_PIN_OUT, LOW);
+      }
     }
   }
 }
+
+void can_test_print(const char * input) {
+  Serial.print(input);
+}
+

@@ -9,3 +9,5 @@
 #include <Debouncer.h>
 #include <DelayRun.h>
 #include <RTClib.h>
+#include "../../lib/MY17_Can_Library/MY17_Can_Library.h"
+#include "../../lib/MY17_Can_Library/MY17_Can_Library_Test.h"
