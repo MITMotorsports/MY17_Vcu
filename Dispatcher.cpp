@@ -1,4 +1,4 @@
-#include "Dispatch_Controller.h"
+#include "Dispatcher.h"
 
 //Magic timing library stuff
 #include <MY17_Can_Library.h>
@@ -47,7 +47,7 @@ void process_can_inputs() {
   if (msgID == Can_No_Msg) {
     return;
   }
-  if (msgID == Can_FrontCanNode_DriverOutput_Msg) {
+  else if (msgID == Can_FrontCanNode_DriverOutput_Msg) {
       Can_FrontCanNode_DriverOutput_T result;
       Can_FrontCanNode_DriverOutput_Read(&result);
   }
