@@ -23,8 +23,6 @@ void fill_input(Input_T *input);
 void update_state(Input_T *input, State_T *state, Output_T *output);
 void empty_output(Input_T *input, State_T *state, Output_T *output);
 
-void can_test_print(const char * print);
-
 Task Task_Dispatch_run(0, Dispatch_run);
 
 /******** END forward declarations ***********/
@@ -43,9 +41,9 @@ static Current_Sensor_Input_T current_sensor_input;
 static Shutdown_Input_T shutdown_input;
 
 static Precharge_State_T precharge_state;
-static Precharge_State_T drive_state;
-static Can_Timing_State_T can_timing_state;
-static Precharge_State_T other_state;
+static Drive_State_T drive_state;
+static Message_State_T message_state;
+static Other_State_T other_state;
 
 static Can_Output_T can_output;
 static Pin_Output_T pin_output;
@@ -94,11 +92,7 @@ void update_state(Input_T *input, State_T *state, Output_T *output) {
 }
 
 void empty_output(Input_T *input, State_T *state, Output_T *output) {
-  // TODO
-}
-
-void can_test_print(const char * text) {
-  Serial.print(text);
+  Output_empty_output(input, state, output);
 }
 
 void initialize_structs() {
@@ -109,6 +103,18 @@ void initialize_structs() {
   input.current_sensor = &current_sensor_input;
   input.shutdown = &shutdown_input;
   Input_initialize(&input);
+
+  state.precharge = &precharge_state;
+  state.drive = &drive_state;
+  state.message = &message_state;
+  state.other = &other_state;
+  State_initialize(&state);
+
+  output.can = &can_output;
+  output.pin = &pin_output;
+  output.onboard = &onboard_output;
+  output.xbee = &xbee_output;
+  Output_initialize(&output);
 }
 
 /********** END method definitions ***********/
