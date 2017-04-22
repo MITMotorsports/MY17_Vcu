@@ -35,11 +35,11 @@ void update_pins(Input_T *input) {
   const uint32_t curr_time = input->msTicks;
   if (curr_time > next_update) {
     Shutdown_Input_T *shutdown = input->shutdown;
-    shutdown->buttons_fault = digitalRead(ESD_DRAIN_FAULT_PIN_IN);
-    shutdown->bms_fault = digitalRead(BMS_FAULT_PIN_IN);
-    shutdown->imd_fault = digitalRead(IMD_FAULT_PIN_IN);
-    shutdown->bpd_fault = digitalRead(BPD_FAULT_PIN_IN);
-    shutdown->lsc_off = digitalRead(LOW_SIDE_MEASURE_PIN_IN);
+    shutdown->buttons_fault = !digitalRead(ESD_DRAIN_FAULT_PIN_IN);
+    shutdown->bms_fault = !digitalRead(BMS_FAULT_PIN_IN);
+    shutdown->imd_fault = !digitalRead(IMD_FAULT_PIN_IN);
+    shutdown->bpd_fault = !digitalRead(BPD_FAULT_PIN_IN);
+    shutdown->lsc_off = !digitalRead(LOW_SIDE_MEASURE_PIN_IN);
 
     shutdown->last_updated = curr_time;
   }
@@ -120,7 +120,7 @@ bool Input_all_devices_alive(Input_T *input) {
 bool Input_shutdown_loop_closed(Input_T *input) {
   Shutdown_Input_T *shutdown = input->shutdown;
   bool has_shutdown_fault = shutdown->buttons_fault || shutdown->bms_fault || shutdown->imd_fault || shutdown->bpd_fault || shutdown->lsc_off;
-  return has_shutdown_fault;
+  return !has_shutdown_fault;
 }
 
 void Input_initialize(Input_T *input) {
@@ -144,7 +144,8 @@ void Input_initialize(Input_T *input) {
   input->shutdown->bms_fault = false;
   input->shutdown->imd_fault = false;
   input->shutdown->bpd_fault = false;
-  input->shutdown->lsc_off = false;
+  // TODO figure out defaults for this
+  input->shutdown->lsc_off = true;
   input->shutdown->last_updated = 0;
 }
 
@@ -208,9 +209,9 @@ void process_unknown(Input_T *input) {
   if (frame.id == 0x69) {
     uint8_t first = frame.data[0];
     if (first == 1) {
-      digitalWrite(MC_ENABLE_PIN_OUT, HIGH);
+      // digitalWrite(MC_ENABLE_PIN_OUT, HIGH);
     } else if (first == 0) {
-      digitalWrite(MC_ENABLE_PIN_OUT, LOW);
+      // digitalWrite(MC_ENABLE_PIN_OUT, LOW);
     }
   }
 }
@@ -220,5 +221,5 @@ bool is_alive(uint32_t last_time, uint32_t curr_time, uint32_t timeout) {
     return false;
   }
   uint32_t dead_time = last_time + timeout;
-  return curr_time > dead_time;
+  return curr_time <= dead_time;
 }
