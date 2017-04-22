@@ -98,39 +98,51 @@ void send_torque_cmd_msg(Input_T *input, State_T *state) {
 void handle_pins(Pin_Output_T *pin) {
   if (pin->fan == Action_ON) {
     digitalWrite(FAN_PIN_OUT, HIGH);
+    pin->fan = Action_NONE;
   } else if (pin->fan == Action_OFF) {
     digitalWrite(FAN_PIN_OUT, LOW);
+    pin->fan = Action_NONE;
   }
 
   if (pin->brake_light == Action_ON) {
     digitalWrite(BRAKE_LIGHT_PIN_OUT, HIGH);
+    pin->brake_light = Action_NONE;
   } else if (pin->brake_light == Action_OFF) {
     digitalWrite(BRAKE_LIGHT_PIN_OUT, LOW);
+    pin->brake_light = Action_NONE;
   }
 
   if (pin->precharge == Action_ON) {
     digitalWrite(PRECHARGE_PIN_OUT, HIGH);
+    pin->precharge = Action_NONE;
   } else if (pin->precharge == Action_OFF) {
     digitalWrite(PRECHARGE_PIN_OUT, LOW);
+    pin->precharge = Action_NONE;
   }
 
   if (pin->mc_enable == Action_ON) {
     digitalWrite(MC_ENABLE_PIN_OUT, HIGH);
+    pin->mc_enable = Action_NONE;
   } else if (pin->mc_enable == Action_OFF) {
     digitalWrite(MC_ENABLE_PIN_OUT, LOW);
+    pin->mc_enable = Action_NONE;
   }
 
   if (pin->wing == Action_ON) {
     digitalWrite(WING_PIN_OUT, HIGH);
+    pin->wing = Action_NONE;
   } else if (pin->wing == Action_OFF) {
     digitalWrite(WING_PIN_OUT, LOW);
+    pin->wing = Action_NONE;
   }
 
   // NOTE THE SWITCHING OF HIGH AND LOW HERE
   if (pin->vcu_fault == Action_ON) {
     digitalWrite(VCU_FAULT_PIN_OUT, LOW);
+    pin->vcu_fault = Action_NONE;
   } else if (pin->vcu_fault == Action_OFF) {
     digitalWrite(VCU_FAULT_PIN_OUT, HIGH);
+    pin->vcu_fault = Action_NONE;
   }
 }
 

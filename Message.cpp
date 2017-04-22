@@ -28,5 +28,14 @@ void update_can(Input_T *input, State_T *state, Output_T *output) {
     message->last_vcu_dash_heartbeat = msTicks;
     output->can->send_dash_msg = true;
   }
+
+  if (state->drive->ready_to_drive) {
+    const uint32_t last_torque = message->last_vcu_mc_torque;
+    const uint32_t next_torque = last_torque + MC_TORQUE_CMD_PERIOD;
+    if (last_torque == 0 || next_torque < msTicks) {
+      message->last_vcu_mc_torque = msTicks;
+      output->can->send_torque_cmd = true;
+    }
+  }
 }
 
