@@ -1,13 +1,9 @@
 #ifndef DISPATCH_CONTROLLER_H
 #define DISPATCH_CONTROLLER_H
 
-#include <stdbool.h>
-
-#include <SoftTimer.h>
-#include <DelayRun.h>
-#include <Debouncer.h>
+#include <Arduino.h>
 
 void Dispatch_begin();
-void Dispatch_run(Task*);
+void Dispatch_run();
 
 #endif // DISPATCH_CONTROLLER_H

@@ -13,6 +13,8 @@ const uint32_t BMS_ALIVE_TIMEOUT_MS = 5000;
 const uint32_t MC_ALIVE_TIMEOUT_MS = 1000;
 const uint32_t CURRENT_SENSOR_ALIVE_TIMEOUT_MS = 5000;
 
+void update_can(Input_T *input);
+void update_pins(Input_T *input);
 void process_can_node_driver_output(Input_T *input);
 void process_dash_heartbeat(Input_T *input);
 void process_dash_request(Input_T *input);
@@ -20,10 +22,30 @@ void process_bms_heartbeat(Input_T *input);
 void process_mc_data_reading(Input_T *input);
 void process_current_sensor_voltage(Input_T *input);
 void process_unknown(Input_T *input);
-
 bool is_alive(uint32_t last_time, uint32_t curr_time, uint32_t timeout);
 
-void Input_update_can(Input_T *input) {
+void Input_fill_input(Input_T *input) {
+  update_can(input);
+  update_pins(input);
+}
+
+void update_pins(Input_T *input) {
+  const uint32_t last_updated = input->shutdown->last_updated;
+  const uint32_t next_update = last_updated + SHUTDOWN_PERIOD_MS;
+  const uint32_t curr_time = input->msTicks;
+  if (curr_time > next_update) {
+    Shutdown_Input_T *shutdown = input->shutdown;
+    shutdown->buttons_fault = digitalRead(ESD_DRAIN_FAULT_PIN_IN);
+    shutdown->bms_fault = digitalRead(BMS_FAULT_PIN_IN);
+    shutdown->imd_fault = digitalRead(IMD_FAULT_PIN_IN);
+    shutdown->bpd_fault = digitalRead(BPD_FAULT_PIN_IN);
+    shutdown->lsc_off = digitalRead(LOW_SIDE_MEASURE_PIN_IN);
+
+    shutdown->last_updated = curr_time;
+  }
+}
+
+void update_can(Input_T *input) {
   Can_MsgID_T msgID = Can_MsgType();
   switch(msgID) {
 
@@ -58,22 +80,6 @@ void Input_update_can(Input_T *input) {
     case Can_No_Msg:
     default:
       break;
-  }
-}
-
-void Input_update_pins(Input_T *input) {
-  const uint32_t last_updated = input->shutdown->last_updated;
-  const uint32_t next_update = last_updated + SHUTDOWN_PERIOD_MS;
-  const uint32_t curr_time = input->msTicks;
-  if (curr_time > next_update) {
-    Shutdown_Input_T *shutdown = input->shutdown;
-    shutdown->buttons_fault = digitalRead(ESD_DRAIN_FAULT_PIN_IN);
-    shutdown->bms_fault = digitalRead(BMS_FAULT_PIN_IN);
-    shutdown->imd_fault = digitalRead(IMD_FAULT_PIN_IN);
-    shutdown->bpd_fault = digitalRead(BPD_FAULT_PIN_IN);
-    shutdown->lsc_off = digitalRead(LOW_SIDE_MEASURE_PIN_IN);
-
-    shutdown->last_updated = curr_time;
   }
 }
 

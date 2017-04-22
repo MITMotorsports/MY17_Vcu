@@ -8,3 +8,7 @@ void setup() {
   // Dispatcher does all the heavy lifting
   Dispatch_begin();
 }
+
+void loop() {
+  Dispatch_run();
+}

@@ -8,8 +8,7 @@
 #include "Types.h"
 
 void Input_initialize(Input_T *input);
-void Input_update_can(Input_T *input);
-void Input_update_pins(Input_T *input);
+void Input_fill_input(Input_T *input);
 
 bool Input_shutdown_loop_closed(Input_T *input);
 bool Input_all_devices_alive(Input_T *input);
