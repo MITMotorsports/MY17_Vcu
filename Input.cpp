@@ -144,7 +144,6 @@ void Input_initialize(Input_T *input) {
   input->shutdown->bms_fault = false;
   input->shutdown->imd_fault = false;
   input->shutdown->bpd_fault = false;
-  // TODO figure out defaults for this
   input->shutdown->lsc_off = true;
   input->shutdown->last_updated = 0;
 }

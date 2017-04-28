@@ -6,38 +6,35 @@
 #include <MY17_Can_Library.h>
 
 typedef struct {
-  // TODO add more things we care about for CAN Node
   int16_t requested_torque;
   bool brakes_engaged;
   uint32_t last_updated;
 } Can_Node_Input_T;
 
 typedef struct {
-  // TODO add more things we care about for dash
   Can_Dash_RequestID_T request_type;
   uint32_t request_timestamp;
   uint32_t last_updated;
 } Dash_Input_T;
 
 typedef struct {
-  // TODO add more things we care about for BMS
+  // TODO handle bms state of charge, either here or in can current sensor
   Can_Bms_StateID_T state;
   uint32_t last_updated;
 } Bms_Input_T;
 
 typedef struct {
-  // TODO add more things we care about for motor controllers
+  // TODO add any errors if necessary for motor controllers
   uint32_t last_updated;
 } Mc_Input_T;
 
 typedef struct {
-  // TODO add more things we care about for current sensor
+  // TODO add energy for can current sensor for SOC estimation
   uint16_t bus_voltage;
   uint32_t last_updated;
 } Current_Sensor_Input_T;
 
 typedef struct {
-  // TODO add more things we care about for shutdown loop
   bool buttons_fault;
   bool bms_fault;
   bool imd_fault;

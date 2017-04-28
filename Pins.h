@@ -4,8 +4,8 @@
 #include <Arduino.h>
 
 //PE7, INT7, ICP3, EIMSK (bit 7), pin_9
+// Not used, but leaving for completeness of pin definitions
 // #define MCP_INT_PIN_IN INT7
-// TODO when figure out if we need this
 
  // PB0, PCINT0, SS, pin_19
 #define MCP_CS_PIN 53
