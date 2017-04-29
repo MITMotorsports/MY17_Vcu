@@ -204,7 +204,7 @@ void process_current_sensor_voltage(Input_T *input) {
 
 void process_unknown(Input_T *input) {
   Frame frame;
-  Can_RawRead(&frame);
+  Can_UnknownRead(&frame);
   if (frame.id == 0x69) {
     uint8_t first = frame.data[0];
     if (first == 1) {
