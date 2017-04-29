@@ -77,6 +77,10 @@ void update_can(Input_T *input) {
       process_unknown(input);
       break;
 
+    case Can_Error_Msg:
+      // TODO error handling
+      break;
+
     case Can_No_Msg:
     default:
       break;
@@ -204,7 +208,7 @@ void process_current_sensor_voltage(Input_T *input) {
 
 void process_unknown(Input_T *input) {
   Frame frame;
-  Can_UnknownRead(&frame);
+  Can_Unknown_Read(&frame);
   if (frame.id == 0x69) {
     uint8_t first = frame.data[0];
     if (first == 1) {
