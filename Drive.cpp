@@ -24,6 +24,8 @@ void disable_drive(Drive_State_T *drive, Pin_Output_T *pin) {
   if (drive->ready_to_drive) {
     drive->ready_to_drive = false;
     pin->mc_enable = Action_OFF;
+    // TODO remove this once fan logic better
+    pin->fan = Action_OFF;
   }
   if (drive->active_aero) {
     drive->active_aero = false;
@@ -62,5 +64,7 @@ void handle_enable_request(Input_T *input, State_T *state, Output_T *output) {
     // Valid enable request, so let's do it!
     state->drive->ready_to_drive = true;
     output->pin->mc_enable = Action_ON;
+    // TODO remove this once fan logic better
+    output->pin->fan = Action_ON;
   }
 }
