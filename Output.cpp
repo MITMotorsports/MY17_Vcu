@@ -68,7 +68,7 @@ void send_dash_msg(Input_T *input, State_T *state) {
   msg.active_aero = state->drive->active_aero;
   msg.regen =
       state->drive->ready_to_drive
-      && (input->can_node->requested_torque < 0);
+      && (input->front_can_node->requested_torque < 0);
   msg.shutdown_esd_drain = input->shutdown->buttons_fault;
   msg.shutdown_bms = input->shutdown->bms_fault;
   msg.shutdown_imd = input->shutdown->imd_fault;
@@ -91,7 +91,7 @@ void send_bms_msg(Input_T *input, State_T *state) {
 
 void send_torque_cmd_msg(Input_T *input, State_T *state) {
   Can_Vcu_MCTorque_T msg;
-  msg.torque_cmd = input->can_node->requested_torque;
+  msg.torque_cmd = input->front_can_node->requested_torque;
 
   // HACK Motor is mounted backwards lolz
   msg.torque_cmd = -1 * msg.torque_cmd;

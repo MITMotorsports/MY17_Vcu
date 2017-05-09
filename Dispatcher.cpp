@@ -21,7 +21,8 @@ void initialize_structs();
 /*********** BEGIN state structs *************/
 
 static Input_T input;
-static Can_Node_Input_T can_node_input;
+static Front_Can_Node_Input_T front_can_node_input;
+static Rear_Can_Node_Input_T rear_can_node_input;
 static Dash_Input_T dash_input;
 static Bms_Input_T bms_input;
 static Mc_Input_T mc_input;
@@ -72,7 +73,8 @@ void Dispatch_run() {
 }
 
 void initialize_structs() {
-  input.can_node = &can_node_input;
+  input.front_can_node = &front_can_node_input;
+  input.rear_can_node = &rear_can_node_input;
   input.dash = &dash_input;
   input.bms = &bms_input;
   input.mc = &mc_input;

@@ -59,7 +59,7 @@ void handle_enable_request(Input_T *input, State_T *state, Output_T *output) {
   // Note that because we reached this codepath, HV must already be enabled.
   // However, can't hurt to leave it in incase this gets moved around
   bool hv_enabled = state->precharge->hv_enabled;
-  bool brake_pressed = input->can_node->brakes_engaged;
+  bool brake_pressed = input->front_can_node->brakes_engaged;
   if (hv_enabled && brake_pressed) {
     // Valid enable request, so let's do it!
     state->drive->ready_to_drive = true;

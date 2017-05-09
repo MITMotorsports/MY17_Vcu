@@ -7,15 +7,21 @@
 const uint8_t BRAKE_ENGAGED_CONSTANT = 50;
 const uint32_t SHUTDOWN_PERIOD_MS = 10;
 
-const uint32_t CAN_NODE_ALIVE_TIMEOUT_MS = 1000;
+// Things on motor path have shorter timeouts for safety reasons
+// They transmit > 1Hz so this is safe
+const uint32_t FRONT_CAN_NODE_ALIVE_TIMEOUT_MS = 1000;
+const uint32_t MC_ALIVE_TIMEOUT_MS = 1000;
+
+// Things not on motor path might have as low as 1Hz so set a 5x timeout
+const uint32_t REAR_CAN_NODE_ALIVE_TIMEOUT_MS = 5000;
 const uint32_t DASH_ALIVE_TIMEOUT_MS = 5000;
 const uint32_t BMS_ALIVE_TIMEOUT_MS = 5000;
-const uint32_t MC_ALIVE_TIMEOUT_MS = 1000;
 const uint32_t CURRENT_SENSOR_ALIVE_TIMEOUT_MS = 5000;
 
 void update_can(Input_T *input);
 void update_pins(Input_T *input);
-void process_can_node_driver_output(Input_T *input);
+void process_front_can_node_driver_output(Input_T *input);
+void process_rear_can_node_heartbeat(Input_T *input);
 void process_dash_heartbeat(Input_T *input);
 void process_dash_request(Input_T *input);
 void process_bms_heartbeat(Input_T *input);
@@ -52,7 +58,11 @@ void update_can(Input_T *input) {
   switch(msgID) {
 
     case Can_FrontCanNode_DriverOutput_Msg:
-      process_can_node_driver_output(input);
+      process_front_can_node_driver_output(input);
+      break;
+
+    case Can_RearCanNode_Heartbeat_Msg:
+      process_rear_can_node_heartbeat(input);
       break;
 
     case Can_Dash_Heartbeat_Msg:
@@ -92,10 +102,17 @@ void update_can(Input_T *input) {
 bool Input_all_devices_alive(Input_T *input) {
   // TODO HACK actually make this work
   return true;
-  bool can_node_alive = is_alive(
-      input->can_node->last_updated,
+
+  bool front_can_node_alive = is_alive(
+      input->front_can_node->last_updated,
       input->msTicks,
-      CAN_NODE_ALIVE_TIMEOUT_MS
+      FRONT_CAN_NODE_ALIVE_TIMEOUT_MS
+  );
+
+  bool rear_can_node_alive = is_alive(
+      input->rear_can_node->last_updated,
+      input->msTicks,
+      REAR_CAN_NODE_ALIVE_TIMEOUT_MS
   );
 
   bool dash_alive = is_alive(
@@ -122,7 +139,7 @@ bool Input_all_devices_alive(Input_T *input) {
       CURRENT_SENSOR_ALIVE_TIMEOUT_MS
   );
 
-  return can_node_alive && dash_alive && bms_alive && mc_alive && current_sensor_alive;
+  return front_can_node_alive && rear_can_node_alive && dash_alive && bms_alive && mc_alive && current_sensor_alive;
 }
 
 bool Input_shutdown_loop_closed(Input_T *input) {
@@ -132,9 +149,11 @@ bool Input_shutdown_loop_closed(Input_T *input) {
 }
 
 void Input_initialize(Input_T *input) {
-  input->can_node->requested_torque = 0;
-  input->can_node->brakes_engaged = false;
-  input->can_node->last_updated = 0;
+  input->front_can_node->requested_torque = 0;
+  input->front_can_node->brakes_engaged = false;
+  input->front_can_node->last_updated = 0;
+
+  input->rear_can_node->last_updated = 0;
 
   input->dash->request_type = CAN_DASH_REQUEST_NO_REQUEST;
   input->dash->request_timestamp = 0;
@@ -156,15 +175,22 @@ void Input_initialize(Input_T *input) {
   input->shutdown->last_updated = 0;
 }
 
-void process_can_node_driver_output(Input_T *input) {
+void process_front_can_node_driver_output(Input_T *input) {
   Can_FrontCanNode_DriverOutput_T msg;
   Can_FrontCanNode_DriverOutput_Read(&msg);
 
-  input->can_node->requested_torque = msg.torque;
+  input->front_can_node->requested_torque = msg.torque;
   uint8_t brake_pressure = msg.brake_pressure;
-  input->can_node->brakes_engaged = brake_pressure > BRAKE_ENGAGED_CONSTANT;
+  input->front_can_node->brakes_engaged = brake_pressure > BRAKE_ENGAGED_CONSTANT;
 
-  input->can_node->last_updated = input->msTicks;
+  input->front_can_node->last_updated = input->msTicks;
+}
+
+void process_rear_can_node_heartbeat(Input_T *input) {
+  Can_RearCanNode_Heartbeat_T msg;
+  Can_RearCanNode_Heartbeat_Read(&msg);
+
+  input->rear_can_node->last_updated = input->msTicks;
 }
 
 void process_dash_heartbeat(Input_T *input) {

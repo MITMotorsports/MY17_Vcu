@@ -9,7 +9,11 @@ typedef struct {
   int16_t requested_torque;
   bool brakes_engaged;
   uint32_t last_updated;
-} Can_Node_Input_T;
+} Front_Can_Node_Input_T;
+
+typedef struct {
+  uint32_t last_updated;
+} Rear_Can_Node_Input_T;
 
 typedef struct {
   Can_Dash_RequestID_T request_type;
@@ -47,7 +51,8 @@ typedef struct {
 } Shutdown_Input_T;
 
 typedef struct {
-  Can_Node_Input_T *can_node;
+  Front_Can_Node_Input_T *front_can_node;
+  Rear_Can_Node_Input_T *rear_can_node;
   Dash_Input_T *dash;
   Bms_Input_T *bms;
   Mc_Input_T *mc;
