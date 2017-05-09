@@ -6,12 +6,13 @@
 #include "Drive.h"
 #include "Precharge.h"
 #include "Message.h"
+#include "Other.h"
 
 void State_update_state(Input_T *input, State_T *state, Output_T *output) {
   Precharge_update_precharge(input, state, output);
   Drive_update_drive(input, state, output);
   Message_update_message(input, state, output);
-  // TODO update other
+  Other_update_other(input, state, output);
 }
 
 void State_initialize(State_T *state) {

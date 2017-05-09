@@ -5,7 +5,7 @@
 #include "Pins.h"
 
 const uint8_t BRAKE_ENGAGED_CONSTANT = 50;
-const uint32_t SHUTDOWN_PERIOD_MS = 100;
+const uint32_t SHUTDOWN_PERIOD_MS = 10;
 
 const uint32_t CAN_NODE_ALIVE_TIMEOUT_MS = 1000;
 const uint32_t DASH_ALIVE_TIMEOUT_MS = 5000;
@@ -40,6 +40,8 @@ void update_pins(Input_T *input) {
     shutdown->imd_fault = !digitalRead(IMD_FAULT_PIN_IN);
     shutdown->bpd_fault = !digitalRead(BPD_FAULT_PIN_IN);
     shutdown->lsc_off = !digitalRead(LOW_SIDE_MEASURE_PIN_IN);
+    shutdown->driver_reset = !digitalRead(DRIVER_RESET_FAULT_PIN_IN);
+    shutdown->master_reset = !digitalRead(MASTER_RESET_FAULT_PIN_IN);
 
     shutdown->last_updated = curr_time;
   }
@@ -88,6 +90,8 @@ void update_can(Input_T *input) {
 }
 
 bool Input_all_devices_alive(Input_T *input) {
+  // TODO HACK actually make this work
+  return true;
   bool can_node_alive = is_alive(
       input->can_node->last_updated,
       input->msTicks,
