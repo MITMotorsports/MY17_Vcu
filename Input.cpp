@@ -103,43 +103,55 @@ bool Input_all_devices_alive(Input_T *input) {
   // TODO HACK actually make this work
   return true;
 
-  bool front_can_node_alive = is_alive(
-      input->front_can_node->last_updated,
-      input->msTicks,
-      FRONT_CAN_NODE_ALIVE_TIMEOUT_MS
-  );
-
-  bool rear_can_node_alive = is_alive(
-      input->rear_can_node->last_updated,
-      input->msTicks,
-      REAR_CAN_NODE_ALIVE_TIMEOUT_MS
-  );
-
-  bool dash_alive = is_alive(
-      input->dash->last_updated,
-      input->msTicks,
-      DASH_ALIVE_TIMEOUT_MS
-  );
-
-  bool bms_alive = is_alive(
-      input->bms->last_updated,
-      input->msTicks,
-      BMS_ALIVE_TIMEOUT_MS
-  );
-
-  bool mc_alive = is_alive(
-      input->mc->last_updated,
-      input->msTicks,
-      MC_ALIVE_TIMEOUT_MS
-  );
-
-  bool current_sensor_alive = is_alive(
-      input->current_sensor->last_updated,
-      input->msTicks,
-      CURRENT_SENSOR_ALIVE_TIMEOUT_MS
-  );
+  bool front_can_node_alive = Input_device_alive(input, FRONT_CAN_NODE_LIVENESS);
+  bool rear_can_node_alive = Input_device_alive(input, REAR_CAN_NODE_LIVENESS);
+  bool bms_alive = Input_device_alive(input, BMS_LIVENESS);
+  bool dash_alive = Input_device_alive(input, DASH_LIVENESS);
+  bool mc_alive = Input_device_alive(input, MC_LIVENESS);
+  bool current_sensor_alive = Input_device_alive(input, CURRENT_SENSOR_LIVENESS);
 
   return front_can_node_alive && rear_can_node_alive && dash_alive && bms_alive && mc_alive && current_sensor_alive;
+}
+
+bool Input_device_alive(Input_T *input, Liveness l) {
+  switch(l) {
+    case FRONT_CAN_NODE_LIVENESS:
+      return is_alive(
+          input->front_can_node->last_updated,
+          input->msTicks,
+          FRONT_CAN_NODE_ALIVE_TIMEOUT_MS
+          );
+    case REAR_CAN_NODE_LIVENESS:
+      return is_alive(
+          input->rear_can_node->last_updated,
+          input->msTicks,
+          REAR_CAN_NODE_ALIVE_TIMEOUT_MS
+          );
+    case BMS_LIVENESS:
+      return is_alive(
+          input->bms->last_updated,
+          input->msTicks,
+          BMS_ALIVE_TIMEOUT_MS
+          );
+    case DASH_LIVENESS:
+      return is_alive(
+          input->dash->last_updated,
+          input->msTicks,
+          DASH_ALIVE_TIMEOUT_MS
+          );
+    case MC_LIVENESS:
+      return is_alive(
+          input->mc->last_updated,
+          input->msTicks,
+          MC_ALIVE_TIMEOUT_MS
+          );
+    case CURRENT_SENSOR_LIVENESS:
+      return is_alive(
+          input->current_sensor->last_updated,
+          input->msTicks,
+          CURRENT_SENSOR_ALIVE_TIMEOUT_MS
+          );
+  }
 }
 
 bool Input_shutdown_loop_closed(Input_T *input) {

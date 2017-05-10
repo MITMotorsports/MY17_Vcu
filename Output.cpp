@@ -1,5 +1,6 @@
 #include "Output.h"
 
+#include "Input.h"
 #include "Pins.h"
 
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can);
@@ -80,6 +81,21 @@ void send_dash_msg(Input_T *input, State_T *state) {
 
   // TODO
   msg.lv_battery_voltage = 138;
+
+  msg.heartbeat_front_can_node_dead =
+      !Input_device_alive(input, FRONT_CAN_NODE_LIVENESS);
+  msg.heartbeat_rear_can_node_dead =
+      !Input_device_alive(input, REAR_CAN_NODE_LIVENESS);
+  msg.heartbeat_bms_dead = !Input_device_alive(input, BMS_LIVENESS);
+  msg.heartbeat_dash_dead = !Input_device_alive(input, DASH_LIVENESS);
+  msg.heartbeat_mc_dead = !Input_device_alive(input, MC_LIVENESS);
+  msg.heartbeat_current_sensor_dead =
+      !Input_device_alive(input, CURRENT_SENSOR_LIVENESS);
+
+  msg.tsms_off = state->other->tsms_fault;
+  msg.reset_latch_open = state->other->master_reset_fault;
+  msg.precharge_running = state->precharge->precharge_begun;
+
   Can_Vcu_DashHeartbeat_Write(&msg);
 }
 
