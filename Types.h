@@ -84,6 +84,9 @@ typedef struct {
 typedef struct {
   bool fan_on;
   bool brake_light;
+  bool heartbeat_fault;
+  bool tsms_fault;
+  bool master_reset_fault;
   bool vcu_fault;
 } Other_State_T;
 

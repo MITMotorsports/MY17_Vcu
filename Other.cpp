@@ -16,41 +16,55 @@ void handle_vcu_fault(Input_T *input, State_T *state, Output_T *output) {
 
   // Heartbeat failures should always cause the vcu to fault
   bool all_devices_alive = Input_all_devices_alive(input);
-  if (!all_devices_alive) {
-    set_vcu_fault(other, pin, true);
-    return;
+  if (all_devices_alive) {
+    other->heartbeat_fault = false;
+  } else {
+    other->heartbeat_fault = true;
   }
 
+  bool driver_reset_pushed = shutdown->driver_reset;
 
-  // Driver reset releases vcu "latch" if heartbeat check hasn't failed
-  if (shutdown->driver_reset) {
-    set_vcu_fault(other, pin, false);
-    return;
+  /*
+    This bool is true iff there is a non-driver-resettable fault.
+    We thus want to open vcu fault to create a "latch"
+      that is not released unless driver reset is pushed.
+    This prevents the master reset button from turning on the car.
+  */
+  bool has_non_resettable_fault =
+    shutdown->bms_fault ||
+    shutdown->imd_fault ||
+    shutdown->bpd_fault;
+
+  if (driver_reset_pushed) {
+    other->master_reset_fault = false;
+  } else if (has_non_resettable_fault) {
+    other->master_reset_fault = true;
   }
 
-  // Master faults cause vcu to latch, preventing master reset from turning
-  // on the car and requiring driver reset to clear this fault.
-  // Kevin, this one's for you.
-  if (shutdown->bms_fault || shutdown->imd_fault || shutdown->bpd_fault) {
-    set_vcu_fault(other, pin, true);
-    return;
-  }
-
-  // This is true iff
-  // (the master switch is open || driver reset has just been pushed),
-  // and since the driver reset case is handled above, this indicates tsms.
-  // We thus want to open vcu fault to create the "latch".
+  /*
+    This bool is true only if the master switch is in the off position.
+    We thus want to open vcu fault to create a "latch"
+      that is not released until driver reset is pushed.
+    This prevents the master switch from turning on the car.
+  */
   bool loop_closed_besides_tsms =
+    !has_non_resettable_fault &&
     !shutdown->buttons_fault &&
-    !shutdown->bms_fault &&
-    !shutdown->imd_fault &&
-    !shutdown->bpd_fault &&
     shutdown->lsc_off;
 
-  if (loop_closed_besides_tsms) {
-    set_vcu_fault(other, pin, true);
-    return;
+  // Order matters here!!
+  if (driver_reset_pushed) {
+    other->tsms_fault = false;
+  } else if (loop_closed_besides_tsms) {
+    other->tsms_fault = true;
   }
+
+  bool has_vcu_fault =
+    other->heartbeat_fault ||
+    other->tsms_fault ||
+    other->master_reset_fault;
+
+  set_vcu_fault(other, pin, has_vcu_fault);
 }
 
 void set_vcu_fault(Other_State_T *other, Pin_Output_T *pin, bool state) {
