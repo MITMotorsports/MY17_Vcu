@@ -192,9 +192,7 @@ void process_front_can_node_driver_output(Input_T *input) {
   Can_FrontCanNode_DriverOutput_Read(&msg);
 
   input->front_can_node->requested_torque = msg.torque;
-  uint8_t brake_pressure = msg.brake_pressure;
-  input->front_can_node->brakes_engaged = brake_pressure > BRAKE_ENGAGED_CONSTANT;
-
+  input->front_can_node->brakes_engaged = msg.brake_engaged;
   input->front_can_node->last_updated = input->msTicks;
 }
 
