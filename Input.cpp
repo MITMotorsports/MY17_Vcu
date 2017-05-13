@@ -152,6 +152,8 @@ bool Input_device_alive(Input_T *input, Liveness l) {
           CURRENT_SENSOR_ALIVE_TIMEOUT_MS
           );
   }
+  // Should never get here
+  return false;
 }
 
 bool Input_shutdown_loop_closed(Input_T *input) {
