@@ -184,6 +184,9 @@ void Input_initialize(Input_T *input) {
   input->shutdown->imd_fault = false;
   input->shutdown->bpd_fault = false;
   input->shutdown->lsc_off = true;
+  input->shutdown->master_reset = false;
+  input->shutdown->driver_reset = false;
+  input->shutdown->lv_voltage = 0;
   input->shutdown->last_updated = 0;
 }
 

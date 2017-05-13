@@ -32,5 +32,10 @@ void State_initialize(State_T *state) {
 
   state->other->fan_on = false;
   state->other->brake_light = false;
+  state->other->heartbeat_fault = false;
+  state->other->tsms_fault = false;
+  state->other->master_reset_fault = false;
   state->other->vcu_fault = false;
+  state->other->master_reset_initialized = false;
+  state->other->driver_reset_initialized = false;
 }

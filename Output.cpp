@@ -96,6 +96,8 @@ void send_dash_msg(Input_T *input, State_T *state) {
   msg.reset_latch_open = state->other->master_reset_fault;
   msg.precharge_running = state->precharge->precharge_begun;
 
+  msg.master_reset_not_initialized = !state->other->master_reset_initialized;
+  msg.driver_reset_not_initialized = !state->other->driver_reset_initialized;
   Can_Vcu_DashHeartbeat_Write(&msg);
 }
 

@@ -88,6 +88,8 @@ typedef struct {
   bool tsms_fault;
   bool master_reset_fault;
   bool vcu_fault;
+  bool master_reset_initialized;
+  bool driver_reset_initialized;
 } Other_State_T;
 
 typedef struct {

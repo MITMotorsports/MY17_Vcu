@@ -4,9 +4,20 @@
 // Function prototypes
 void handle_vcu_fault(Input_T *input, State_T *state, Output_T *output);
 void set_vcu_fault(Other_State_T *other, Pin_Output_T *output, bool state);
+void set_switch_initialization(Input_T *input, Other_State_T *other);
 
 void Other_update_other(Input_T *input, State_T *state, Output_T *output) {
   handle_vcu_fault(input, state, output);
+  set_switch_initialization(input, state->other);
+}
+
+void set_switch_initialization(Input_T *input, Other_State_T *other) {
+  if (input->shutdown->master_reset) {
+    other->master_reset_initialized = true;
+  }
+  if (input->shutdown->driver_reset) {
+    other->driver_reset_initialized = true;
+  }
 }
 
 void handle_vcu_fault(Input_T *input, State_T *state, Output_T *output) {
