@@ -15,9 +15,6 @@ void Pin_Manager::setup_output_pins() {
   pinMode(WING_PIN_OUT, OUTPUT);
   pinMode(BRAKE_LIGHT_PIN_OUT, OUTPUT);
   pinMode(MC_ENABLE_PIN_OUT, OUTPUT);
-
-  digitalWrite(VCU_FAULT_PIN_OUT, HIGH);
-  digitalWrite(PRECHARGE_PIN_OUT, LOW);
 }
 
 void Pin_Manager::setup_input_pins() {
