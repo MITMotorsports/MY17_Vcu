@@ -88,6 +88,18 @@ void update_can(Input_T *input) {
       process_current_sensor_voltage(input);
       break;
 
+    case Can_CurrentSensor_Current_Msg:
+      process_current_sensor_current(input);
+      break;
+
+    case Can_CurrentSensor_Power_Msg:
+      process_current_sensor_power(input);
+      break;
+
+    case Can_CurrentSensor_Energy_Msg:
+      process_current_sensor_energy(input);
+      break;
+
     case Can_Unknown_Msg:
       process_unknown(input);
       break;

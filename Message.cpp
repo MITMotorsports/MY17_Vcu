@@ -13,6 +13,7 @@ void maybe_update(uint32_t *last_time, uint32_t period, bool *output_flag, uint3
 
 void Message_update_message(Input_T *input, State_T *state, Output_T *output) {
   update_can(input, state, output);
+  update_onboard(input, state, output);
 }
 
 void update_can(Input_T *input, State_T *state, Output_T *output) {
