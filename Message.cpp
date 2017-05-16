@@ -33,7 +33,7 @@ void update_can(Input_T *input, State_T *state, Output_T *output) {
       &can->send_dash_msg,
       msTicks);
 
-  if (state->drive->ready_to_drive) {
+  // if (state->drive->ready_to_drive) {
     // Currently we don't zero the motors when disabled but let the MC disable
     // pin do it automatically. Hopefully this isn't a problem later on...
     maybe_update(
@@ -41,7 +41,7 @@ void update_can(Input_T *input, State_T *state, Output_T *output) {
         MC_TORQUE_CMD_PERIOD,
         &can->send_torque_cmd,
         msTicks);
-  }
+  // }
 }
 
 void update_onboard(Input_T *input, State_T *state, Output_T *output) {
@@ -55,7 +55,7 @@ void update_onboard(Input_T *input, State_T *state, Output_T *output) {
       &output->onboard->write_front_can_log,
       msTicks);
 
-  if (state->drive->ready_to_drive) {
+  // if (state->drive->ready_to_drive) {
     // For now we just log all current sensor readings as they come in.
     // TODO consider changing this if we fill up serial baud rate.
     Current_Sensor_Input_T *sensor = input->current_sensor;
@@ -73,7 +73,7 @@ void update_onboard(Input_T *input, State_T *state, Output_T *output) {
     if (sensor->last_energy_ms == msTicks) {
       onboard->write_energy_log = true;
     }
-  }
+  // }
 }
 
 void maybe_update(uint32_t *last_time, uint32_t period, bool *output_flag, uint32_t msTicks) {
