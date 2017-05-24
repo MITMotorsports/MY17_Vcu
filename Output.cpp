@@ -22,7 +22,6 @@ void Output_initialize(Output_T *output) {
   output->can->send_mc_single_request_msg = false;
   output->can->send_mc_permanent_request_msg = false;
   output->can->send_torque_cmd = false;
-  output->can->send_mc_request = false;
 
   output->pin->fan = Action_OFF;
   output->pin->brake_light = Action_OFF;
@@ -105,8 +104,8 @@ void handle_can(Input_T *input, State_T *state, Can_Output_T *can) {
     send_torque_cmd_msg(input, state);
   }
 
-  if (can->send_mc_request) {
-    can->send_mc_request = false;
+  if (can->send_mc_permanent_request_msg) {
+    can->send_mc_permanent_request_msg = false;
     send_mc_request_msg();
   }
 }

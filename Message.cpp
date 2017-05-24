@@ -59,7 +59,7 @@ void update_onboard(Input_T *input, State_T *state, Output_T *output) {
   maybe_update(
       &state->message->last_vcu_mc_permanent_transmit_ms,
       MC_PERMANENT_REQUEST_PERIOD,
-      &output->can->send_mc_request,
+      &output->can->send_mc_permanent_request_msg,
       msTicks);
 
   if (state->drive->ready_to_drive) {
