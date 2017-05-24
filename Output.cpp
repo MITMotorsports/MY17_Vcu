@@ -84,7 +84,7 @@ void print_data(String prefix, int32_t data, String unit, uint32_t msTicks) {
   line.concat(unit);
   line.concat(", ");
   line.concat(msTicks);
-  Serial3.println(line);
+  Serial1.println(line);
 }
 
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can) {
@@ -158,6 +158,7 @@ void send_bms_msg(Input_T *input, State_T *state) {
   Can_Vcu_BmsHeartbeat_T msg;
   msg.alwaysTrue = true;
   Can_Vcu_BmsHeartbeat_Write(&msg);
+
 }
 
 void send_torque_cmd_msg(Input_T *input, State_T *state) {

@@ -1,5 +1,7 @@
 #include "Dispatcher.h"
 
+#include <Arduino.h>
+#include <HardwareSerial.h>
 //Magic timing library stuff
 #include <MY17_Can_Library.h>
 
@@ -48,8 +50,13 @@ static Xbee_Output_T xbee_output;
 void Dispatch_begin() {
   // Initialize Serial and wait to make sure it's initialized
   Serial.begin(115200);
+
+  // Onboard logger
+  Serial1.begin(115200);
+
+  // Xbee
   Serial2.begin(57600);
-  Serial3.begin(115200);
+
   delay(50);
 
   // Initialize all pins besides CAN
