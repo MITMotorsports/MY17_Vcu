@@ -9,6 +9,7 @@ void handle_pins(Pin_Output_T *output);
 void send_dash_msg(Input_T *input, State_T *state);
 void send_bms_msg(Input_T *input, State_T *state);
 void send_torque_cmd_msg(Input_T *input, State_T *state);
+void send_mc_request_msg(void);
 
 void Output_initialize(Output_T *output) {
   output->can->send_dash_msg = false;
@@ -16,6 +17,7 @@ void Output_initialize(Output_T *output) {
   output->can->send_mc_single_request_msg = false;
   output->can->send_mc_permanent_request_msg = false;
   output->can->send_torque_cmd = false;
+  output->can->send_mc_request = false;
 
   output->pin->fan = Action_NONE;
   output->pin->brake_light = Action_NONE;
@@ -48,6 +50,11 @@ void handle_can(Input_T *input, State_T *state, Can_Output_T *can) {
   if (can->send_torque_cmd) {
     can->send_torque_cmd = false;
     send_torque_cmd_msg(input, state);
+  }
+
+  if (can->send_mc_request) {
+    can->send_mc_request = false;
+    send_mc_request_msg();
   }
 }
 
@@ -115,6 +122,15 @@ void send_torque_cmd_msg(Input_T *input, State_T *state) {
   msg.torque_cmd = -1 * msg.torque_cmd;
 
   Can_Vcu_MCTorque_Write(&msg);
+}
+
+void send_mc_request_msg(void) {
+  Can_Vcu_MCRequest_T msg;
+  msg.requestType = CAN_MC_REG_SPEED_CMD_BEFORE_RAMP_RPM;
+  const uint8_t McRequestPeriod = 100;
+  msg.period = McRequestPeriod;
+
+  Can_Vcu_MCRequest_Write(&msg);
 }
 
 void handle_pins(Pin_Output_T *pin) {

@@ -4,6 +4,7 @@
 #define BMS_MSG_PERIOD 1000
 #define MC_SINGLE_REQUEST_PERIOD 100
 #define MC_TORQUE_CMD_PERIOD 20
+#define MC_REQUEST_PERIOD 100
 
 void update_can(Input_T *input, State_T *state, Output_T *output);
 
@@ -36,6 +37,13 @@ void update_can(Input_T *input, State_T *state, Output_T *output) {
       message->last_vcu_mc_torque = msTicks;
       output->can->send_torque_cmd = true;
     }
+  }
+
+  const uint32_t last_vcu_mc_request = message->last_vcu_mc_request;
+  const uint32_t next_vcu_mc_request = last_vcu_mc_request + MC_REQUEST_PERIOD;
+  if (last_vcu_mc_request == 0 || next_vcu_mc_request < msTicks) {
+    message->last_vcu_mc_request = msTicks;
+    output->can->send_mc_request = true;
   }
 }
 

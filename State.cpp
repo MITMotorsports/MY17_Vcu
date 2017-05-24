@@ -29,6 +29,7 @@ void State_initialize(State_T *state) {
   state->message->last_vcu_mc_single_transmit = 0;
   state->message->last_vcu_mc_permanent_transmit = 0;
   state->message->last_vcu_mc_torque = 0;
+  state->message->last_vcu_mc_request = 0;
 
   state->other->fan_on = false;
   state->other->brake_light = false;

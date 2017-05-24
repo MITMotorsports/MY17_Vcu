@@ -79,6 +79,7 @@ typedef struct {
   uint32_t last_vcu_mc_single_transmit;
   uint32_t last_vcu_mc_permanent_transmit;
   uint32_t last_vcu_mc_torque;
+  uint32_t last_vcu_mc_request;
 } Message_State_T;
 
 typedef struct {
@@ -112,6 +113,7 @@ typedef struct {
   bool send_mc_single_request_msg;
   bool send_mc_permanent_request_msg;
   bool send_torque_cmd;
+  bool send_mc_request;
 } Can_Output_T;
 
 typedef struct {
