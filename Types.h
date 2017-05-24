@@ -7,6 +7,7 @@
 
 typedef struct {
   int16_t requested_torque;
+  uint8_t brake_pressure;
   bool brakes_engaged;
   uint32_t last_updated;
 } Front_Can_Node_Input_T;
@@ -33,8 +34,15 @@ typedef struct {
 } Mc_Input_T;
 
 typedef struct {
-  // TODO add energy for can current sensor for SOC estimation
-  uint16_t bus_voltage;
+  int32_t voltage_mV;
+  uint32_t last_voltage_ms;
+  int32_t current_mA;
+  uint32_t last_current_ms;
+  int32_t power_W;
+  uint32_t last_power_ms;
+  int32_t energy_Wh;
+  uint32_t last_energy_ms;
+  // Used for heartbeat
   uint32_t last_updated;
 } Current_Sensor_Input_T;
 
@@ -74,11 +82,12 @@ typedef struct {
 } Drive_State_T;
 
 typedef struct {
-  uint32_t last_vcu_bms_heartbeat;
-  uint32_t last_vcu_dash_heartbeat;
-  uint32_t last_vcu_mc_single_transmit;
-  uint32_t last_vcu_mc_permanent_transmit;
-  uint32_t last_vcu_mc_torque;
+  uint32_t last_vcu_bms_heartbeat_ms;
+  uint32_t last_vcu_dash_heartbeat_ms;
+  uint32_t last_vcu_mc_single_transmit_ms;
+  uint32_t last_vcu_mc_permanent_transmit_ms;
+  uint32_t last_vcu_mc_torque_ms;
+  uint32_t last_front_can_log_ms;
 } Message_State_T;
 
 typedef struct {
@@ -98,7 +107,6 @@ typedef struct {
   Message_State_T *message;
   Other_State_T *other;
 } State_T;
-
 
 typedef enum {
   Action_NONE = 0,
@@ -124,8 +132,11 @@ typedef struct {
 } Pin_Output_T;
 
 typedef struct {
-  // TODO
-  bool temp;
+  bool write_current_log;
+  bool write_voltage_log;
+  bool write_power_log;
+  bool write_energy_log;
+  bool write_front_can_log;
 } Onboard_Output_T;
 
 typedef struct {

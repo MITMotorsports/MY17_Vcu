@@ -27,6 +27,9 @@ void process_dash_request(Input_T *input);
 void process_bms_heartbeat(Input_T *input);
 void process_mc_data_reading(Input_T *input);
 void process_current_sensor_voltage(Input_T *input);
+void process_current_sensor_current(Input_T *input);
+void process_current_sensor_power(Input_T *input);
+void process_current_sensor_energy(Input_T *input);
 void process_unknown(Input_T *input);
 bool is_alive(uint32_t last_time, uint32_t curr_time, uint32_t timeout);
 
@@ -83,6 +86,18 @@ void update_can(Input_T *input) {
 
     case Can_CurrentSensor_Voltage_Msg:
       process_current_sensor_voltage(input);
+      break;
+
+    case Can_CurrentSensor_Current_Msg:
+      process_current_sensor_current(input);
+      break;
+
+    case Can_CurrentSensor_Power_Msg:
+      process_current_sensor_power(input);
+      break;
+
+    case Can_CurrentSensor_Energy_Msg:
+      process_current_sensor_energy(input);
       break;
 
     case Can_Unknown_Msg:
@@ -164,6 +179,7 @@ bool Input_shutdown_loop_closed(Input_T *input) {
 
 void Input_initialize(Input_T *input) {
   input->front_can_node->requested_torque = 0;
+  input->front_can_node->brake_pressure = 0;
   input->front_can_node->brakes_engaged = false;
   input->front_can_node->last_updated = 0;
 
@@ -178,7 +194,14 @@ void Input_initialize(Input_T *input) {
 
   input->mc->last_updated = 0;
 
-  input->current_sensor->bus_voltage = 0;
+  input->current_sensor->voltage_mV = 0;
+  input->current_sensor->last_voltage_ms = 0;
+  input->current_sensor->current_mA = 0;
+  input->current_sensor->last_current_ms = 0;
+  input->current_sensor->power_W = 0;
+  input->current_sensor->last_power_ms = 0;
+  input->current_sensor->energy_Wh = 0;
+  input->current_sensor->last_energy_ms = 0;
   input->current_sensor->last_updated = 0;
 
   input->shutdown->buttons_fault = false;
@@ -197,6 +220,7 @@ void process_front_can_node_driver_output(Input_T *input) {
   Can_FrontCanNode_DriverOutput_Read(&msg);
 
   input->front_can_node->requested_torque = msg.torque;
+  input->front_can_node->brake_pressure = msg.brake_pressure;
   input->front_can_node->brakes_engaged = msg.brake_engaged;
   input->front_can_node->last_updated = input->msTicks;
 }
@@ -245,10 +269,52 @@ void process_current_sensor_voltage(Input_T *input) {
   Can_CurrentSensor_Voltage_T msg;
   Can_CurrentSensor_Voltage_Read(&msg);
 
-  const uint16_t voltage_dV = msg.voltage_mV / 10;
-  input->current_sensor->bus_voltage = voltage_dV;
+  Current_Sensor_Input_T *sensor = input->current_sensor;
 
-  input->current_sensor->last_updated = input->msTicks;
+  sensor->voltage_mV = msg.voltage_mV;
+  sensor->last_voltage_ms = input->msTicks;
+
+  // Also update heartbeat time
+  sensor->last_updated = input->msTicks;
+}
+
+void process_current_sensor_current(Input_T *input) {
+  Can_CurrentSensor_Current_T msg;
+  Can_CurrentSensor_Current_Read(&msg);
+
+  Current_Sensor_Input_T *sensor = input->current_sensor;
+
+  sensor->current_mA = msg.current_mA;
+  sensor->last_current_ms = input->msTicks;
+
+  // Also update heartbeat time
+  sensor->last_updated = input->msTicks;
+}
+
+void process_current_sensor_power(Input_T *input) {
+  Can_CurrentSensor_Power_T msg;
+  Can_CurrentSensor_Power_Read(&msg);
+
+  Current_Sensor_Input_T *sensor = input->current_sensor;
+
+  sensor->power_W = msg.power_W;
+  sensor->last_power_ms = input->msTicks;
+
+  // Also update heartbeat time
+  sensor->last_updated = input->msTicks;
+}
+
+void process_current_sensor_energy(Input_T *input) {
+  Can_CurrentSensor_Energy_T msg;
+  Can_CurrentSensor_Energy_Read(&msg);
+
+  Current_Sensor_Input_T *sensor = input->current_sensor;
+
+  sensor->energy_Wh = msg.energy_Wh;
+  sensor->last_energy_ms = input->msTicks;
+
+  // Also update heartbeat time
+  sensor->last_updated = input->msTicks;
 }
 
 void process_unknown(Input_T *input) {

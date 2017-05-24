@@ -24,11 +24,12 @@ void State_initialize(State_T *state) {
   state->drive->active_aero = false;
   state->drive->limp_mode = false;
 
-  state->message->last_vcu_bms_heartbeat = 0;
-  state->message->last_vcu_dash_heartbeat = 0;
-  state->message->last_vcu_mc_single_transmit = 0;
-  state->message->last_vcu_mc_permanent_transmit = 0;
-  state->message->last_vcu_mc_torque = 0;
+  state->message->last_vcu_bms_heartbeat_ms = 0;
+  state->message->last_vcu_dash_heartbeat_ms = 0;
+  state->message->last_vcu_mc_single_transmit_ms = 0;
+  state->message->last_vcu_mc_permanent_transmit_ms = 0;
+  state->message->last_vcu_mc_torque_ms = 0;
+  state->message->last_front_can_log_ms = 0;
 
   state->other->fan_on = false;
   state->other->brake_light = false;

@@ -1,14 +1,19 @@
 #include "Output.h"
 
+#include <Arduino.h>
+
 #include "Input.h"
 #include "Pins.h"
 
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can);
 void handle_pins(Pin_Output_T *output);
+void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard);
 
 void send_dash_msg(Input_T *input, State_T *state);
 void send_bms_msg(Input_T *input, State_T *state);
 void send_torque_cmd_msg(Input_T *input, State_T *state);
+
+void print_data(String prefix, int32_t data, String unit, uint32_t msTicks);
 
 void Output_initialize(Output_T *output) {
   output->can->send_dash_msg = false;
@@ -17,21 +22,69 @@ void Output_initialize(Output_T *output) {
   output->can->send_mc_permanent_request_msg = false;
   output->can->send_torque_cmd = false;
 
-  output->pin->fan = Action_NONE;
-  output->pin->brake_light = Action_NONE;
-  output->pin->precharge = Action_NONE;
-  output->pin->mc_enable = Action_NONE;
-  output->pin->wing = Action_NONE;
-  output->pin->vcu_fault = Action_NONE;
+  output->pin->fan = Action_OFF;
+  output->pin->brake_light = Action_OFF;
+  output->pin->precharge = Action_OFF;
+  output->pin->mc_enable = Action_OFF;
+  output->pin->wing = Action_OFF;
+  output->pin->vcu_fault = Action_OFF;
+
+  output->onboard->write_current_log = false;
+  output->onboard->write_voltage_log = false;
+  output->onboard->write_power_log = false;
+  output->onboard->write_energy_log = false;
+  output->onboard->write_front_can_log = false;
 
   // TODO
-  output->onboard->temp = false;
   output->xbee->temp = false;
 }
 
 void Output_empty_output(Input_T *input, State_T *state, Output_T *output) {
   handle_can(input, state, output->can);
   handle_pins(output->pin);
+  handle_onboard(input, state, output->onboard);
+}
+
+void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
+  Current_Sensor_Input_T *sensor = input->current_sensor;
+
+  if (onboard->write_current_log) {
+    onboard->write_current_log = false;
+    print_data("current", sensor->current_mA, "mA", sensor->last_current_ms);
+  }
+  if (onboard->write_voltage_log) {
+    onboard->write_voltage_log = false;
+    print_data("voltage", sensor->voltage_mV, "mV", sensor->last_voltage_ms);
+  }
+  if (onboard->write_power_log) {
+    onboard->write_power_log = false;
+    print_data("power", sensor->power_W, "W", sensor->last_power_ms);
+  }
+  if (onboard->write_energy_log) {
+    onboard->write_energy_log = false;
+    print_data("energy", sensor->energy_Wh, "Wh", sensor->last_energy_ms);
+  }
+
+  if (onboard->write_front_can_log) {
+    Front_Can_Node_Input_T *front_can = input->front_can_node;
+    const uint32_t last_updated = front_can->last_updated;
+
+    onboard->write_front_can_log = false;
+    print_data("torque", front_can->requested_torque, "int16_t", last_updated);
+    print_data("brake", front_can->brake_pressure, "uint8_t", last_updated);
+  }
+}
+
+void print_data(String prefix, int32_t data, String unit, uint32_t msTicks) {
+  String line;
+  line.concat(prefix);
+  line.concat(", ");
+  line.concat(data);
+  line.concat(", ");
+  line.concat(unit);
+  line.concat(", ");
+  line.concat(msTicks);
+  Serial1.println(line);
 }
 
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can) {
@@ -105,6 +158,7 @@ void send_bms_msg(Input_T *input, State_T *state) {
   Can_Vcu_BmsHeartbeat_T msg;
   msg.alwaysTrue = true;
   Can_Vcu_BmsHeartbeat_Write(&msg);
+
 }
 
 void send_torque_cmd_msg(Input_T *input, State_T *state) {
