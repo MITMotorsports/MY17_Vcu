@@ -120,6 +120,7 @@ typedef struct {
   bool send_mc_single_request_msg;
   bool send_mc_permanent_request_msg;
   bool send_torque_cmd;
+  bool send_mc_request;
 } Can_Output_T;
 
 typedef struct {

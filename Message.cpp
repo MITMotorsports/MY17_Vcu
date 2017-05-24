@@ -3,6 +3,7 @@
 #define DASH_MSG_PERIOD 100UL
 #define BMS_MSG_PERIOD 1000UL
 #define MC_SINGLE_REQUEST_PERIOD 100UL
+#define MC_PERMANENT_REQUEST_PERIOD 100UL
 #define MC_TORQUE_CMD_PERIOD 20UL
 
 #define FRONT_CAN_LOG_PERIOD_MS 50UL
@@ -53,6 +54,12 @@ void update_onboard(Input_T *input, State_T *state, Output_T *output) {
       &state->message->last_front_can_log_ms,
       FRONT_CAN_LOG_PERIOD_MS,
       &output->onboard->write_front_can_log,
+      msTicks);
+
+  maybe_update(
+      &state->message->last_vcu_mc_permanent_transmit_ms,
+      MC_PERMANENT_REQUEST_PERIOD,
+      &output->can->send_mc_request,
       msTicks);
 
   if (state->drive->ready_to_drive) {
