@@ -259,8 +259,8 @@ void process_bms_heartbeat(Input_T *input) {
 }
 
 void process_mc_data_reading(Input_T *input) {
-  Can_Bms_Heartbeat_T msg;
-  Can_Bms_Heartbeat_Read(&msg);
+  Can_MC_DataReading_T msg;
+  Can_MC_DataReading_Read(&msg);
 
   input->mc->last_updated = input->msTicks;
 }
