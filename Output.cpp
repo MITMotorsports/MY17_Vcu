@@ -4,6 +4,9 @@
 
 #include "Input.h"
 #include "Pins.h"
+#include "McRequest.h"
+
+#include "MY17_Can_Library.h"
 
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can);
 void handle_pins(Pin_Output_T *output);
@@ -12,7 +15,7 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard);
 void send_dash_msg(Input_T *input, State_T *state);
 void send_bms_msg(Input_T *input, State_T *state);
 void send_torque_cmd_msg(Input_T *input, State_T *state);
-void send_mc_request_msg(void);
+void send_mc_request_msg(MC_Request_Type requestType);
 
 void print_data(String prefix, int32_t data, String unit, uint32_t msTicks);
 
@@ -20,7 +23,7 @@ void Output_initialize(Output_T *output) {
   output->can->send_dash_msg = false;
   output->can->send_bms_msg = false;
   output->can->send_mc_single_request_msg = false;
-  output->can->send_mc_permanent_request_msg = false;
+  output->can->send_mc_permanent_request_msg = true;
   output->can->send_torque_cmd = false;
 
   output->pin->fan = Action_OFF;
@@ -106,7 +109,11 @@ void handle_can(Input_T *input, State_T *state, Can_Output_T *can) {
 
   if (can->send_mc_permanent_request_msg) {
     can->send_mc_permanent_request_msg = false;
-    send_mc_request_msg();
+    const MC_Request_Type requestType = 
+      state->mc_request_state->permanent_transmit_request_type;
+    if (requestType != NO_MOTOR_CONTROLLER_REQUEST) {
+      send_mc_request_msg(requestType);
+    }
   }
 }
 
@@ -177,11 +184,12 @@ void send_torque_cmd_msg(Input_T *input, State_T *state) {
   Can_Vcu_MCTorque_Write(&msg);
 }
 
-void send_mc_request_msg(void) {
+void send_mc_request_msg(MC_Request_Type requestType) {
+
   Can_Vcu_MCRequest_T msg;
-  msg.requestType = CAN_MC_REG_SPEED_CMD_BEFORE_RAMP_RPM;
-  const uint8_t McRequestPeriod = 100;
-  msg.period = McRequestPeriod;
+  msg.requestType = McRequest_translate_mc_request(requestType);
+  const uint8_t mcRequestPeriod = 100;
+  msg.period = mcRequestPeriod;
 
   Can_Vcu_MCRequest_Write(&msg);
 }

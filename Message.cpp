@@ -3,7 +3,7 @@
 #define DASH_MSG_PERIOD 100UL
 #define BMS_MSG_PERIOD 1000UL
 #define MC_SINGLE_REQUEST_PERIOD 100UL
-#define MC_PERMANENT_REQUEST_PERIOD 100UL
+#define MC_PERMANENT_TRANSMIT_PERIOD 100UL
 #define MC_TORQUE_CMD_PERIOD 20UL
 
 #define FRONT_CAN_LOG_PERIOD_MS 50UL
@@ -56,12 +56,6 @@ void update_onboard(Input_T *input, State_T *state, Output_T *output) {
       &output->onboard->write_front_can_log,
       msTicks);
 
-  maybe_update(
-      &state->message->last_vcu_mc_permanent_transmit_ms,
-      MC_PERMANENT_REQUEST_PERIOD,
-      &output->can->send_mc_permanent_request_msg,
-      msTicks);
-
   if (state->drive->ready_to_drive) {
     // For now we just log all current sensor readings as they come in.
     // TODO consider changing this if we fill up serial baud rate.
@@ -90,4 +84,3 @@ void maybe_update(uint32_t *last_time, uint32_t period, bool *output_flag, uint3
     *output_flag = true;
   }
 }
-

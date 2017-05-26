@@ -192,6 +192,24 @@ void Input_initialize(Input_T *input) {
   input->bms->state = CAN_BMS_STATE_INIT;
   input->bms->last_updated = 0;
 
+  input->mc->last_i_cmd = 0;
+  input->mc->last_i_actual = 0;
+  input->mc->last_i_cmd_ramp = 0;
+  input->mc->last_i_q_actual = 0;
+  input->mc->last_i_d_actual = 0;
+  input->mc->last_n_cmd = 0;
+  input->mc->last_n_actual = 0;
+  input->mc->last_n_cmd_ramp = 0;
+  input->mc->last_dc_bus = 0;
+  input->mc->last_v_out = 0;
+  input->mc->last_v_red = 0;
+  input->mc->last_v_q = 0;
+  input->mc->last_v_d = 0;
+  input->mc->last_t_motor = 0;
+  input->mc->last_t_igbt = 0;
+  input->mc->last_t_air = 0;
+  input->mc->last_p_motor = 0;
+  input->mc->last_p_regen_i2_t = 0;
   input->mc->last_updated = 0;
 
   input->current_sensor->voltage_mV = 0;

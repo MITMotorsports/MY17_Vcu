@@ -5,6 +5,35 @@
 
 #include <MY17_Can_Library.h>
 
+// All names in the enum are taken from the NDrive manual
+typedef enum {
+  I_CMD,
+  I_ACTUAL,
+  I_CMD_RAMP,
+  I_Q_ACTUAL,
+  I_D_ACTUAL,
+
+  N_CMD,
+  N_ACTUAL,
+  N_CMD_RAMP,
+
+  DC_BUS,
+  V_OUT,
+  V_RED,
+  V_Q,
+  V_D,
+
+  T_MOTOR,
+  T_IGBT,
+  T_AIR,
+
+  P_MOTOR,
+
+  P_REGEN_I2_T,
+
+  NO_MOTOR_CONTROLLER_REQUEST
+} MC_Request_Type;
+
 typedef struct {
   int16_t requested_torque;
   uint8_t brake_pressure;
@@ -30,6 +59,30 @@ typedef struct {
 
 typedef struct {
   // TODO add any errors if necessary for motor controllers
+  uint32_t last_i_cmd;
+  uint32_t last_i_actual;
+  uint32_t last_i_cmd_ramp;
+  uint32_t last_i_q_actual;
+  uint32_t last_i_d_actual;
+
+  uint32_t last_n_cmd;
+  uint32_t last_n_actual;
+  uint32_t last_n_cmd_ramp;
+
+  uint32_t last_dc_bus;
+  uint32_t last_v_out;
+  uint32_t last_v_red;
+  uint32_t last_v_q;
+  uint32_t last_v_d;
+
+  uint32_t last_t_motor;
+  uint32_t last_t_igbt;
+  uint32_t last_t_air;
+
+  uint32_t last_p_motor;
+
+  uint32_t last_p_regen_i2_t;
+
   uint32_t last_updated;
 } Mc_Input_T;
 
@@ -91,6 +144,11 @@ typedef struct {
 } Message_State_T;
 
 typedef struct {
+  MC_Request_Type permanent_transmit_request_type;
+  uint32_t last_permanent_transmit_request_ms;
+} Mc_Request_State_T;
+
+typedef struct {
   bool fan_on;
   bool brake_light;
   bool heartbeat_fault;
@@ -105,6 +163,7 @@ typedef struct {
   Precharge_State_T *precharge;
   Drive_State_T *drive;
   Message_State_T *message;
+  Mc_Request_State_T *mc_request_state;
   Other_State_T *other;
 } State_T;
 
