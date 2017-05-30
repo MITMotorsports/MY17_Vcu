@@ -6,7 +6,6 @@
 #include "Drive.h"
 #include "Precharge.h"
 #include "Message.h"
-#include "McRequest.h"
 #include "Other.h"
 
 #include "MY17_Can_Library.h"
@@ -15,7 +14,6 @@ void State_update_state(Input_T *input, State_T *state, Output_T *output) {
   Precharge_update_precharge(input, state, output);
   Drive_update_drive(input, state, output);
   Message_update_message(input, state, output);
-  McRequest_update_mcRequest(input, state, output);
   Other_update_other(input, state, output);
 }
 
@@ -30,13 +28,9 @@ void State_initialize(State_T *state) {
 
   state->message->last_vcu_bms_heartbeat_ms = 0;
   state->message->last_vcu_dash_heartbeat_ms = 0;
-  state->message->last_vcu_mc_single_transmit_ms = 0;
   state->message->last_vcu_mc_permanent_transmit_ms = 0;
   state->message->last_vcu_mc_torque_ms = 0;
   state->message->last_front_can_log_ms = 0;
-
-  state->mc_request_state->permanent_transmit_request_type = I_CMD;
-  state->mc_request_state->last_permanent_transmit_request_ms = 0;
 
   state->other->fan_on = false;
   state->other->brake_light = false;
