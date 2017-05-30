@@ -46,7 +46,7 @@ AVR_TOOLS_DIR     = /usr/local
 
 ### AVRDDUDE
 ### Path to avrdude directory.
-AVRDUDE          = /usr/local/CrossPack-AVR/bin/avrdude
+AVRDUDE          = /usr/local/bin/avrdude
 
 ### CFLAGS_STD
 CFLAGS_STD        = -std=gnu11
