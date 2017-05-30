@@ -39,6 +39,7 @@ void update_can(Input_T *input, State_T *state, Output_T *output) {
 void update_onboard(Input_T *input, State_T *state, Output_T *output) {
   update_onboard_front_can(state, output, input->msTicks);
   update_onboard_current_sense(input, state, output);
+  update_onboard_mc_response(input, state, output);
 }
 
 void update_can_bms_heartbeat(State_T *state, Output_T *output, uint32_t msTicks) {
@@ -128,9 +129,12 @@ void update_onboard_current_sense(Input_T *input, State_T *state, Output_T *outp
 }
 
 void update_onboard_mc_response(Input_T *input, State_T *state, Output_T *output) {
-  MC_Request_Type type = Types_MC_Request_get(input->mc);
-  if (type != MC_REQUEST_LENGTH) {
-      output->onboard->write_mc_data[type] = true;
+  const uint32_t msTicks = input->msTicks;
+  for (int i= 0; i < MC_REQUEST_LENGTH; i++) {
+    if (input->mc->last_mc_response_times[i] == msTicks) {
+      // We have a message this cycle so let's log it for now
+      output->onboard->write_mc_data[i] = true;
+    }
   }
 }
 

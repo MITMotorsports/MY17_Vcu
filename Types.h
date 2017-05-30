@@ -50,7 +50,6 @@ typedef struct {
 
 Can_MC_RegID_T Types_MC_Request_to_MC_Reg(MC_Request_Type request_type);
 MC_Request_Type Types_MC_Reg_to_MC_Request(Can_MC_RegID_T reg);
-MC_Request_Type Types_MC_Request_get(Mc_Input_T *mc);
 
 typedef struct {
   int32_t voltage_mV;

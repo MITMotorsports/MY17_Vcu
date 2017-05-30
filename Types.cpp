@@ -5,7 +5,6 @@
 #include <MY17_Can_Library.h>
 
 Can_MC_RegID_T Types_MC_Request_to_MC_Reg(MC_Request_Type request_type) {
-  // TODO
   switch(request_type) {
     case I_CMD:
       return CAN_MC_REG_CURRENT_CMD;
@@ -84,13 +83,4 @@ MC_Request_Type Types_MC_Reg_to_MC_Request(Can_MC_RegID_T reg) {
       return MC_REQUEST_LENGTH;
       break;
   }
-}
-
-MC_Request_Type Types_get_MC_Request(Mc_Input_T *mc) {
-  for(int i = 0; i < MC_REQUEST_LENGTH; i++) {
-    if (mc->last_mc_response_times[i] == 0) {
-      return (MC_Request_Type)i;
-    }
-  }
-  return MC_REQUEST_LENGTH;
 }
