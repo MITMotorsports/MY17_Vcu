@@ -3,12 +3,15 @@
 
 // Function prototypes
 void handle_vcu_fault(Input_T *input, State_T *state, Output_T *output);
-void set_vcu_fault(Other_State_T *other, Pin_Output_T *output, bool state);
 void set_switch_initialization(Input_T *input, Other_State_T *other);
+void handle_brake_light(Input_T *input, State_T *other, Output_T *output);
+
+void set_vcu_fault(Other_State_T *other, Pin_Output_T *output, bool state);
 
 void Other_update_other(Input_T *input, State_T *state, Output_T *output) {
   handle_vcu_fault(input, state, output);
   set_switch_initialization(input, state->other);
+  handle_brake_light(input, state, output);
 }
 
 void set_switch_initialization(Input_T *input, Other_State_T *other) {
@@ -76,6 +79,16 @@ void handle_vcu_fault(Input_T *input, State_T *state, Output_T *output) {
     other->master_reset_fault;
 
   set_vcu_fault(other, pin, has_vcu_fault);
+}
+
+void handle_brake_light(Input_T *input, State_T *state, Output_T *output) {
+  if (input->front_can_node->brakes_engaged && !state->other->brake_light) {
+    state->other->brake_light = true;
+    output->pin->brake_light = Action_ON;
+  } else if (!input->front_can_node->brakes_engaged && state->other->brake_light) {
+    state->other->brake_light = false;
+    output->pin->brake_light = Action_OFF;
+  }
 }
 
 void set_vcu_fault(Other_State_T *other, Pin_Output_T *pin, bool state) {
