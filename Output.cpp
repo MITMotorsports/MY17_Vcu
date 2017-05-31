@@ -5,6 +5,8 @@
 #include "Input.h"
 #include "Pins.h"
 
+#include "MY17_Can_Library.h"
+
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can);
 void handle_pins(Pin_Output_T *output);
 void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard);
@@ -12,16 +14,18 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard);
 void send_dash_msg(Input_T *input, State_T *state);
 void send_bms_msg(Input_T *input, State_T *state);
 void send_torque_cmd_msg(Input_T *input, State_T *state);
-void send_mc_request_msg(void);
+void send_mc_request_msg(MC_Request_Type requestType);
 
+void get_mc_name(MC_Request_Type type, String& output);
 void print_data(String prefix, int32_t data, String unit, uint32_t msTicks);
 
 void Output_initialize(Output_T *output) {
   output->can->send_dash_msg = false;
   output->can->send_bms_msg = false;
-  output->can->send_mc_single_request_msg = false;
-  output->can->send_mc_permanent_request_msg = false;
   output->can->send_torque_cmd = false;
+  for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
+    output->can->send_mc_permanent_request_msg[i] = false;
+  }
 
   output->pin->fan = Action_OFF;
   output->pin->brake_light = Action_OFF;
@@ -35,6 +39,9 @@ void Output_initialize(Output_T *output) {
   output->onboard->write_power_log = false;
   output->onboard->write_energy_log = false;
   output->onboard->write_front_can_log = false;
+  for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
+    output->onboard->write_mc_data[i] = false;
+  }
 
   // TODO
   output->xbee->temp = false;
@@ -74,6 +81,30 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
     print_data("torque", front_can->requested_torque, "int16_t", last_updated);
     print_data("brake", front_can->brake_pressure, "uint8_t", last_updated);
   }
+
+  for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
+    Mc_Input_T *mc = input->mc;
+    const uint32_t last_updated = mc->last_updated;
+    if (onboard->write_mc_data[i]) {
+      String name;
+      if (i != MC_STATE) {
+        get_mc_name((MC_Request_Type)i, name);
+        print_data(name, mc->data[i], "int16_t", last_updated);
+      } else {
+        if (mc->active_current_reduction) {
+          Serial1.println("active_current_reduction, " + String(last_updated));
+        }
+        if (mc->current_reduction_via_igbt_temp) {
+          Serial1.println("current_reduction_via_igbt_temp, " + String(last_updated));
+        }
+        if (mc->current_reduction_via_motor_temp) {
+          Serial1.println("current_reduction_via_igbt_temp, " + String(last_updated));
+        }
+      }
+
+      onboard->write_mc_data[i] = false;
+    }
+  }
 }
 
 void print_data(String prefix, int32_t data, String unit, uint32_t msTicks) {
@@ -86,6 +117,42 @@ void print_data(String prefix, int32_t data, String unit, uint32_t msTicks) {
   line.concat(", ");
   line.concat(msTicks);
   Serial1.println(line);
+}
+
+void get_mc_name(MC_Request_Type type, String& output) {
+  switch(type) {
+    case I_CMD:
+      output.concat("I_CMD");
+      break;
+    case I_ACTUAL:
+      output.concat("I_ACTUAL");
+      break;
+    case V_OUT:
+      output.concat("V_OUT");
+      break;
+    case V_RED:
+      output.concat("V_RED");
+      break;
+    case N_CMD:
+      output.concat("N_CMD");
+      break;
+    case N_ACTUAL:
+      output.concat("N_ACTUAL");
+      break;
+    case T_MOTOR:
+      output.concat("T_MOTOR");
+      break;
+    case T_IGBT:
+      output.concat("T_IGBT");
+      break;
+    case T_AIR:
+      output.concat("T_AIR");
+      break;
+    case MC_REQUEST_LENGTH:
+    case MC_STATE:
+      output.concat("BUG!BUG!");
+      break;
+  }
 }
 
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can) {
@@ -104,9 +171,12 @@ void handle_can(Input_T *input, State_T *state, Can_Output_T *can) {
     send_torque_cmd_msg(input, state);
   }
 
-  if (can->send_mc_permanent_request_msg) {
-    can->send_mc_permanent_request_msg = false;
-    send_mc_request_msg();
+  for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
+    if (can->send_mc_permanent_request_msg[i]) {
+      can->send_mc_permanent_request_msg[i] = false;
+      MC_Request_Type type = (MC_Request_Type)i;
+      send_mc_request_msg(type);
+    }
   }
 }
 
@@ -138,9 +208,6 @@ void send_dash_msg(Input_T *input, State_T *state) {
   msg.shutdown_master_reset = input->shutdown->master_reset;
   msg.shutdown_driver_reset = input->shutdown->driver_reset;
 
-  // TODO
-  msg.lv_battery_voltage = 138;
-
   msg.heartbeat_front_can_node_dead =
       !Input_device_alive(input, FRONT_CAN_NODE_LIVENESS);
   msg.heartbeat_rear_can_node_dead =
@@ -157,6 +224,7 @@ void send_dash_msg(Input_T *input, State_T *state) {
 
   msg.master_reset_not_initialized = !state->other->master_reset_initialized;
   msg.driver_reset_not_initialized = !state->other->driver_reset_initialized;
+  msg.lv_battery_voltage = input->shutdown->lv_voltage;
   Can_Vcu_DashHeartbeat_Write(&msg);
 }
 
@@ -164,7 +232,6 @@ void send_bms_msg(Input_T *input, State_T *state) {
   Can_Vcu_BmsHeartbeat_T msg;
   msg.alwaysTrue = true;
   Can_Vcu_BmsHeartbeat_Write(&msg);
-
 }
 
 void send_torque_cmd_msg(Input_T *input, State_T *state) {
@@ -177,12 +244,13 @@ void send_torque_cmd_msg(Input_T *input, State_T *state) {
   Can_Vcu_MCTorque_Write(&msg);
 }
 
-void send_mc_request_msg(void) {
-  Can_Vcu_MCRequest_T msg;
-  msg.requestType = CAN_MC_REG_SPEED_CMD_BEFORE_RAMP_RPM;
-  const uint8_t McRequestPeriod = 100;
-  msg.period = McRequestPeriod;
+void send_mc_request_msg(MC_Request_Type type) {
 
+  Can_Vcu_MCRequest_T msg;
+  msg.requestType = Types_MC_Request_to_MC_Reg(type);
+  msg.period = 0;
+
+  // Serial.println("Transmit Type: VCU=" + String(type) + ", MC=" + String(msg.requestType));
   Can_Vcu_MCRequest_Write(&msg);
 }
 

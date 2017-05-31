@@ -8,6 +8,8 @@
 #include "Message.h"
 #include "Other.h"
 
+#include "MY17_Can_Library.h"
+
 void State_update_state(Input_T *input, State_T *state, Output_T *output) {
   Precharge_update_precharge(input, state, output);
   Drive_update_drive(input, state, output);
@@ -26,7 +28,6 @@ void State_initialize(State_T *state) {
 
   state->message->last_vcu_bms_heartbeat_ms = 0;
   state->message->last_vcu_dash_heartbeat_ms = 0;
-  state->message->last_vcu_mc_single_transmit_ms = 0;
   state->message->last_vcu_mc_permanent_transmit_ms = 0;
   state->message->last_vcu_mc_torque_ms = 0;
   state->message->last_front_can_log_ms = 0;

@@ -28,10 +28,32 @@ typedef struct {
   uint32_t last_updated;
 } Bms_Input_T;
 
+// All names in the enum are taken from the NDrive manual
+typedef enum {
+  I_ACTUAL = 0,
+  I_CMD,
+  V_OUT,
+  V_RED,
+  N_CMD,
+  N_ACTUAL,
+  T_MOTOR,
+  T_IGBT,
+  T_AIR,
+  MC_STATE,
+  MC_REQUEST_LENGTH
+} MC_Request_Type;
+
 typedef struct {
-  // TODO add any errors if necessary for motor controllers
+  uint32_t last_mc_response_times[MC_REQUEST_LENGTH];
+  int16_t data[MC_REQUEST_LENGTH];
   uint32_t last_updated;
+  bool active_current_reduction;
+  bool current_reduction_via_igbt_temp;
+  bool current_reduction_via_motor_temp;
 } Mc_Input_T;
+
+Can_MC_RegID_T Types_MC_Request_to_MC_Reg(MC_Request_Type request_type);
+MC_Request_Type Types_MC_Reg_to_MC_Request(Can_MC_RegID_T reg);
 
 typedef struct {
   int32_t voltage_mV;
@@ -54,7 +76,7 @@ typedef struct {
   bool lsc_off;
   bool master_reset;
   bool driver_reset;
-  uint8_t lv_voltage;
+  uint16_t lv_voltage;
   uint32_t last_updated;
 } Shutdown_Input_T;
 
@@ -84,7 +106,6 @@ typedef struct {
 typedef struct {
   uint32_t last_vcu_bms_heartbeat_ms;
   uint32_t last_vcu_dash_heartbeat_ms;
-  uint32_t last_vcu_mc_single_transmit_ms;
   uint32_t last_vcu_mc_permanent_transmit_ms;
   uint32_t last_vcu_mc_torque_ms;
   uint32_t last_front_can_log_ms;
@@ -117,9 +138,8 @@ typedef enum {
 typedef struct {
   bool send_dash_msg;
   bool send_bms_msg;
-  bool send_mc_single_request_msg;
-  bool send_mc_permanent_request_msg;
   bool send_torque_cmd;
+  bool send_mc_permanent_request_msg[MC_REQUEST_LENGTH];
 } Can_Output_T;
 
 typedef struct {
@@ -137,6 +157,7 @@ typedef struct {
   bool write_power_log;
   bool write_energy_log;
   bool write_front_can_log;
+  bool write_mc_data[MC_REQUEST_LENGTH];
 } Onboard_Output_T;
 
 typedef struct {

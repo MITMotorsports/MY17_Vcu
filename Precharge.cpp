@@ -1,6 +1,6 @@
 #include "Precharge.h"
 
-#define PRECHARGE_PERIOD 10000
+#define PRECHARGE_PERIOD 5000
 
 void handle_hv_disable(Precharge_State_T *precharge, Pin_Output_T *pin);
 void start_precharge(Precharge_State_T *precharge, uint32_t msTicks);

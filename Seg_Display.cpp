@@ -1,14 +1,11 @@
 #include "Seg_Display.h"
 #include "Pins.h"
-#include "assert.h"
 
 void Seg_Display::begin() {
   blank();
 }
 
 void Seg_Display::displayDigit(uint8_t val) {
-  assert(val >= 0);
-  assert(val <= 9);
   setRegister(val);
   // Serial.println(val);
 }
@@ -20,8 +17,6 @@ void Seg_Display::blank() {
 }
 
 uint8_t Seg_Display::numberToPort(uint8_t input) {
-  assert(input >= 0x00);
-  assert(input <= 0x0F);
   uint8_t result = 0x00;
   if ((input & 0x01) == 0x01) {
     // Serial.println("Disp A");
