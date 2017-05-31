@@ -37,6 +37,10 @@ Can_MC_RegID_T Types_MC_Request_to_MC_Reg(MC_Request_Type request_type) {
       return CAN_MC_REG_AIR_TEMP;
       break;
 
+    case MC_STATE:
+      return CAN_MC_REG_STATE;
+      break;
+
     case MC_REQUEST_LENGTH:
     default:
       Serial.println("Should never happen!!");
@@ -76,6 +80,10 @@ MC_Request_Type Types_MC_Reg_to_MC_Request(Can_MC_RegID_T reg) {
       break;
     case CAN_MC_REG_AIR_TEMP:
       return T_AIR;
+      break;
+
+    case CAN_MC_REG_STATE:
+      return MC_STATE;
       break;
 
     default:

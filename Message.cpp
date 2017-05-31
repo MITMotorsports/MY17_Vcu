@@ -2,8 +2,7 @@
 
 #define DASH_MSG_PERIOD 100UL
 #define BMS_MSG_PERIOD 1000UL
-#define MC_SINGLE_REQUEST_PERIOD 100UL
-#define MC_PERMANENT_TRANSMIT_PERIOD 100UL
+#define MC_SINGLE_REQUEST_PERIOD 10UL
 #define MC_TORQUE_CMD_PERIOD 20UL
 
 #define FRONT_CAN_LOG_PERIOD_MS 50UL
@@ -79,19 +78,16 @@ void update_can_mc_request(Input_T *input, State_T *state, Output_T *output) {
   const uint32_t msTicks = input->msTicks;
   uint32_t *last_msg = &state->message->last_vcu_mc_permanent_transmit_ms;
 
-  if (period_reached(*last_msg, MC_PERMANENT_TRANSMIT_PERIOD, msTicks)) {
-    // We want to find the first message type that hasn't yet responded to
-    // its request.
+  if (period_reached(*last_msg, MC_SINGLE_REQUEST_PERIOD, msTicks)) {
+    *last_msg = msTicks;
     for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
-      if (input->mc->last_mc_response_times[i] == 0) {
+      int next = (i + 1) % MC_REQUEST_LENGTH;
+      if (input->mc->last_mc_response_times[i] <= input->mc->last_mc_response_times[next]) {
         // This is the next message type we want to request transmit of.
-        *last_msg = msTicks;
         output->can->send_mc_permanent_request_msg[i] = true;
-        return;
+        break;
       }
     }
-    // All message types have responded, so we can just chill.
-    *last_msg = UINT32_MAX;
   }
 }
 

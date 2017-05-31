@@ -87,8 +87,20 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
     const uint32_t last_updated = mc->last_updated;
     if (onboard->write_mc_data[i]) {
       String name;
-      get_mc_name((MC_Request_Type)i, name);
-      print_data(name, mc->data[i], "int16_t", last_updated);
+      if (i != MC_STATE) {
+        get_mc_name((MC_Request_Type)i, name);
+        print_data(name, mc->data[i], "int16_t", last_updated);
+      } else {
+        if (mc->active_current_reduction) {
+          Serial1.println("active_current_reduction, " + String(last_updated));
+        }
+        if (mc->current_reduction_via_igbt_temp) {
+          Serial1.println("current_reduction_via_igbt_temp, " + String(last_updated));
+        }
+        if (mc->current_reduction_via_motor_temp) {
+          Serial1.println("current_reduction_via_igbt_temp, " + String(last_updated));
+        }
+      }
 
       onboard->write_mc_data[i] = false;
     }
@@ -137,6 +149,7 @@ void get_mc_name(MC_Request_Type type, String& output) {
       output.concat("T_AIR");
       break;
     case MC_REQUEST_LENGTH:
+    case MC_STATE:
       output.concat("BUG!BUG!");
       break;
   }
@@ -235,9 +248,9 @@ void send_mc_request_msg(MC_Request_Type type) {
 
   Can_Vcu_MCRequest_T msg;
   msg.requestType = Types_MC_Request_to_MC_Reg(type);
-  const uint8_t mcRequestPeriod = 100;
-  msg.period = mcRequestPeriod;
+  msg.period = 0;
 
+  // Serial.println("Transmit Type: VCU=" + String(type) + ", MC=" + String(msg.requestType));
   Can_Vcu_MCRequest_Write(&msg);
 }
 

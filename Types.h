@@ -30,8 +30,8 @@ typedef struct {
 
 // All names in the enum are taken from the NDrive manual
 typedef enum {
-  I_CMD = 0,
-  I_ACTUAL,
+  I_ACTUAL = 0,
+  I_CMD,
   V_OUT,
   V_RED,
   N_CMD,
@@ -39,6 +39,7 @@ typedef enum {
   T_MOTOR,
   T_IGBT,
   T_AIR,
+  MC_STATE,
   MC_REQUEST_LENGTH
 } MC_Request_Type;
 
@@ -46,6 +47,9 @@ typedef struct {
   uint32_t last_mc_response_times[MC_REQUEST_LENGTH];
   int16_t data[MC_REQUEST_LENGTH];
   uint32_t last_updated;
+  bool active_current_reduction;
+  bool current_reduction_via_igbt_temp;
+  bool current_reduction_via_motor_temp;
 } Mc_Input_T;
 
 Can_MC_RegID_T Types_MC_Request_to_MC_Reg(MC_Request_Type request_type);

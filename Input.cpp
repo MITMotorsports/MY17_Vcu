@@ -26,6 +26,7 @@ void process_dash_heartbeat(Input_T *input);
 void process_dash_request(Input_T *input);
 void process_bms_heartbeat(Input_T *input);
 void process_mc_data_reading(Input_T *input);
+void process_mc_state(Input_T *input);
 void process_current_sensor_voltage(Input_T *input);
 void process_current_sensor_current(Input_T *input);
 void process_current_sensor_power(Input_T *input);
@@ -83,6 +84,10 @@ void update_can(Input_T *input) {
 
     case Can_MC_DataReading_Msg:
       process_mc_data_reading(input);
+      break;
+
+    case Can_MC_State_Msg:
+      process_mc_state(input);
       break;
 
     case Can_CurrentSensor_Voltage_Msg:
@@ -197,6 +202,9 @@ void Input_initialize(Input_T *input) {
     input->mc->last_mc_response_times[i] = 0;
     input->mc->data[i] = 0;
   }
+  input->mc->active_current_reduction = false;
+  input->mc->current_reduction_via_igbt_temp = false;
+  input->mc->current_reduction_via_motor_temp = false;
   input->mc->last_updated = 0;
 
   input->current_sensor->voltage_mV = 0;
@@ -271,9 +279,21 @@ void process_mc_data_reading(Input_T *input) {
   MC_Request_Type type = Types_MC_Reg_to_MC_Request(reg);
 
   if (type != MC_REQUEST_LENGTH) {
-    input->mc->data[type] = msg.value;
     input->mc->last_mc_response_times[type] = input->msTicks;
+    input->mc->data[type] = msg.value;
+    // Serial.println("Receive Type: VCU=" + String(type) + ", MC=" + String(reg));
   }
+
+  input->mc->last_updated = input->msTicks;
+}
+
+void process_mc_state(Input_T *input) {
+  Can_MC_State_T msg;
+  Can_MC_State_Read(&msg);
+  input->mc->last_mc_response_times[MC_STATE] = input->msTicks;
+  input->mc->active_current_reduction = msg.active_current_reduction;
+  input->mc->current_reduction_via_igbt_temp = msg.current_limited_via_igbt_temp;
+  input->mc->current_reduction_via_motor_temp = msg.current_reduction_via_motor_temp;
 
   input->mc->last_updated = input->msTicks;
 }
