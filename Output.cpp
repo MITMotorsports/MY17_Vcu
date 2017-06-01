@@ -39,6 +39,7 @@ void Output_initialize(Output_T *output) {
   output->onboard->write_power_log = false;
   output->onboard->write_energy_log = false;
   output->onboard->write_front_can_log = false;
+  output->onboard->write_fault_log = false;
   for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
     output->onboard->write_mc_data[i] = false;
   }
@@ -80,6 +81,31 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
     onboard->write_front_can_log = false;
     print_data("torque", front_can->requested_torque, "int16_t", last_updated);
     print_data("brake", front_can->brake_pressure, "uint8_t", last_updated);
+  }
+
+  if (onboard->write_fault_log) {
+    onboard->write_fault_log = false;
+
+    Bms_Input_T *bms = input->bms;
+    const uint32_t msTicks = input->msTicks;
+
+    if (state->drive->ready_to_drive) {
+      // TODO Faults only relevant if driving?
+
+      if (!bms->fan_enable) {
+        // Fans aren't working for some reason
+        print_data("FAULT_fan", 1, "true", msTicks);
+      }
+
+      bool dcdc_on_with_no_fault = bms->dcdc_enable && !bms->dcdc_fault;
+      if (!dcdc_on_with_no_fault) {
+        print_data("FAULT_dcdc", 1, "true", msTicks);
+      }
+    }
+
+    // TODO real todo here please make this separate timing loop
+    print_data("high_temp_dC", bms->highest_cell_temp_dC, "dC", msTicks);
+    print_data("low_voltage_cV", bms->lowest_cell_voltage_cV, "cV", msTicks);
   }
 
   for (int i = 0; i < MC_REQUEST_LENGTH; i++) {

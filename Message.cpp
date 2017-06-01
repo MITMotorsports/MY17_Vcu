@@ -6,6 +6,7 @@
 #define MC_TORQUE_CMD_PERIOD 20UL
 
 #define FRONT_CAN_LOG_PERIOD_MS 50UL
+#define FAULT_LOG_PERIOD_MS 1000UL
 
 void update_can(Input_T *input, State_T *state, Output_T *output);
 void update_onboard(Input_T *input, State_T *state, Output_T *output);
@@ -18,6 +19,7 @@ void update_can_mc_request(Input_T *input, State_T *state, Output_T *output);
 void update_onboard_front_can(State_T *state, Output_T *output, uint32_t msTicks);
 void update_onboard_current_sense(Input_T *input, State_T *state, Output_T *output);
 void update_onboard_mc_response(Input_T *input, State_T *state, Output_T *output);
+void update_onboard_fault(State_T *state, Output_T *output, uint32_t msTicks);
 
 bool period_reached(uint32_t start, uint32_t period, uint32_t msTicks);
 
@@ -39,6 +41,7 @@ void update_onboard(Input_T *input, State_T *state, Output_T *output) {
   update_onboard_front_can(state, output, input->msTicks);
   update_onboard_current_sense(input, state, output);
   update_onboard_mc_response(input, state, output);
+  update_onboard_fault(state, output, input->msTicks);
 }
 
 void update_can_bms_heartbeat(State_T *state, Output_T *output, uint32_t msTicks) {
@@ -131,6 +134,14 @@ void update_onboard_mc_response(Input_T *input, State_T *state, Output_T *output
       // We have a message this cycle so let's log it for now
       output->onboard->write_mc_data[i] = true;
     }
+  }
+}
+
+void update_onboard_fault(State_T *state, Output_T *output, uint32_t msTicks) {
+  uint32_t *last_msg = &state->message->last_fault_log_ms;
+  if(period_reached(*last_msg, FAULT_LOG_PERIOD_MS, msTicks)) {
+    *last_msg = msTicks;
+    output->onboard->write_fault_log = true;
   }
 }
 

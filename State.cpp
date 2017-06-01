@@ -31,6 +31,7 @@ void State_initialize(State_T *state) {
   state->message->last_vcu_mc_permanent_transmit_ms = 0;
   state->message->last_vcu_mc_torque_ms = 0;
   state->message->last_front_can_log_ms = 0;
+  state->message->last_fault_log_ms = 0;
 
   state->other->fan_on = false;
   state->other->brake_light = false;

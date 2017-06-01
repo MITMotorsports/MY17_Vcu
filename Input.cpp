@@ -25,6 +25,8 @@ void process_rear_can_node_heartbeat(Input_T *input);
 void process_dash_heartbeat(Input_T *input);
 void process_dash_request(Input_T *input);
 void process_bms_heartbeat(Input_T *input);
+void process_bms_packstatus(Input_T *input);
+void process_bms_celltemps(Input_T *input);
 void process_mc_data_reading(Input_T *input);
 void process_mc_state(Input_T *input);
 void process_current_sensor_voltage(Input_T *input);
@@ -80,6 +82,14 @@ void update_can(Input_T *input) {
 
     case Can_Bms_Heartbeat_Msg:
       process_bms_heartbeat(input);
+      break;
+
+    case Can_Bms_PackStatus_Msg:
+      process_bms_packstatus(input);
+      break;
+
+    case Can_Bms_CellTemps_Msg:
+      process_bms_celltemps(input);
       break;
 
     case Can_MC_DataReading_Msg:
@@ -197,6 +207,11 @@ void Input_initialize(Input_T *input) {
 
   input->bms->state = CAN_BMS_STATE_INIT;
   input->bms->last_updated = 0;
+  input->bms->fan_enable = false;
+  input->bms->dcdc_enable = false;
+  input->bms->dcdc_fault = false;
+  input->bms->highest_cell_temp_dC = 0;
+  input->bms->lowest_cell_voltage_cV = 0;
 
   for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
     input->mc->last_mc_response_times[i] = 0;
@@ -267,6 +282,27 @@ void process_bms_heartbeat(Input_T *input) {
   Can_Bms_Heartbeat_Read(&msg);
 
   input->bms->state = msg.state;
+  input->bms->fan_enable = msg.fan_enable;
+  input->bms->dcdc_enable = msg.dcdc_enable;
+  input->bms->dcdc_fault = msg.dcdc_fault;
+
+  input->bms->last_updated = input->msTicks;
+}
+
+void process_bms_packstatus(Input_T *input) {
+  Can_Bms_PackStatus_T msg;
+  Can_Bms_PackStatus_Read(&msg);
+
+  input->bms->lowest_cell_voltage_cV = msg.min_cell_voltage;
+
+  input->bms->last_updated = input->msTicks;
+}
+
+void process_bms_celltemps(Input_T *input) {
+  Can_Bms_CellTemps_T msg;
+  Can_Bms_CellTemps_Read(&msg);
+
+  input->bms->highest_cell_temp_dC = msg.max_cell_temp;
 
   input->bms->last_updated = input->msTicks;
 }

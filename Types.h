@@ -26,6 +26,11 @@ typedef struct {
   // TODO handle bms state of charge, either here or in can current sensor
   Can_Bms_StateID_T state;
   uint32_t last_updated;
+  bool fan_enable;
+  bool dcdc_enable;
+  bool dcdc_fault;
+  uint16_t highest_cell_temp_dC;
+  uint16_t lowest_cell_voltage_cV;
 } Bms_Input_T;
 
 // All names in the enum are taken from the NDrive manual
@@ -109,6 +114,7 @@ typedef struct {
   uint32_t last_vcu_mc_permanent_transmit_ms;
   uint32_t last_vcu_mc_torque_ms;
   uint32_t last_front_can_log_ms;
+  uint32_t last_fault_log_ms;
 } Message_State_T;
 
 typedef struct {
@@ -157,6 +163,7 @@ typedef struct {
   bool write_power_log;
   bool write_energy_log;
   bool write_front_can_log;
+  bool write_fault_log;
   bool write_mc_data[MC_REQUEST_LENGTH];
 } Onboard_Output_T;
 
