@@ -104,7 +104,9 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
     }
 
     // TODO real todo here please make this separate timing loop
-    print_data("high_temp_dC", bms->highest_cell_temp_dC, "dC", msTicks);
+    if (bms->highest_cell_temp_dC != 0) {
+      print_data("high_temp_dC", bms->highest_cell_temp_dC, "dC", msTicks);
+    }
     print_data("low_voltage_cV", bms->lowest_cell_voltage_cV, "cV", msTicks);
   }
 
@@ -124,7 +126,7 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
           Serial1.println("current_reduction_via_igbt_temp, " + String(last_updated));
         }
         if (mc->current_reduction_via_motor_temp) {
-          Serial1.println("current_reduction_via_igbt_temp, " + String(last_updated));
+          Serial1.println("current_reduction_via_motor_temp, " + String(last_updated));
         }
       }
 
