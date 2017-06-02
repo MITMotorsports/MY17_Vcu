@@ -217,9 +217,6 @@ void Input_initialize(Input_T *input) {
     input->mc->last_mc_response_times[i] = 0;
     input->mc->data[i] = 0;
   }
-  input->mc->active_current_reduction = false;
-  input->mc->current_reduction_via_igbt_temp = false;
-  input->mc->current_reduction_via_motor_temp = false;
   input->mc->last_updated = 0;
 
   input->current_sensor->voltage_mV = 0;
@@ -327,9 +324,8 @@ void process_mc_state(Input_T *input) {
   Can_MC_State_T msg;
   Can_MC_State_Read(&msg);
   input->mc->last_mc_response_times[MC_STATE] = input->msTicks;
-  input->mc->active_current_reduction = msg.active_current_reduction;
-  input->mc->current_reduction_via_igbt_temp = msg.current_limited_via_igbt_temp;
-  input->mc->current_reduction_via_motor_temp = msg.current_reduction_via_motor_temp;
+
+  input->mc->state = msg;
 
   input->mc->last_updated = input->msTicks;
 }

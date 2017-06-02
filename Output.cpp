@@ -7,6 +7,8 @@
 
 #include "MY17_Can_Library.h"
 
+uint32_t last_print_time = 0;
+
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can);
 void handle_pins(Pin_Output_T *output);
 void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard);
@@ -59,19 +61,15 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
 
   if (onboard->write_current_log) {
     onboard->write_current_log = false;
-    print_data("current", sensor->current_mA, sensor->last_current_ms); //mA
+    print_data("crt", sensor->current_mA, sensor->last_current_ms); //mA
   }
   if (onboard->write_voltage_log) {
     onboard->write_voltage_log = false;
-    print_data("voltage", sensor->voltage_mV, sensor->last_voltage_ms); //mV
+    print_data("vlt", sensor->voltage_mV, sensor->last_voltage_ms); //mV
   }
   if (onboard->write_power_log) {
     onboard->write_power_log = false;
-    print_data("power", sensor->power_W, sensor->last_power_ms); //W
-  }
-  if (onboard->write_energy_log) {
-    onboard->write_energy_log = false;
-    print_data("energy", sensor->energy_Wh, sensor->last_energy_ms); //wH
+    print_data("pwr", sensor->power_W, sensor->last_power_ms); //W
   }
 
   if (onboard->write_front_can_log) {
@@ -79,8 +77,8 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
     const uint32_t last_updated = front_can->last_updated;
 
     onboard->write_front_can_log = false;
-    print_data("torque", front_can->requested_torque, last_updated); //int16_t
-    print_data("brake", front_can->brake_pressure, last_updated); //uint8_t
+    print_data("trq", front_can->requested_torque, last_updated); //int16_t
+    print_data("brk", front_can->brake_pressure, last_updated); //uint8_t
   }
 
   if (onboard->write_fault_log) {
@@ -100,9 +98,9 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
 
     // TODO real todo here please make this separate timing loop
     if (bms->highest_cell_temp_dC != 0) {
-      print_data("high_temp_dC", bms->highest_cell_temp_dC, msTicks); //dC
+      print_data("tmp", bms->highest_cell_temp_dC, msTicks); //dC
     }
-    print_data("low_voltage_cV", bms->lowest_cell_voltage_cV, msTicks); //cV
+    print_data("lcv", bms->lowest_cell_voltage_cV, msTicks); //cV
   }
 
   for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
@@ -114,60 +112,85 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
         get_mc_name((MC_Request_Type)i, name);
         print_data(name, mc->data[i], last_updated); //int16_t
       } else {
-        if (mc->active_current_reduction) {
-          print_data("active_current_reduction", 1, last_updated);
+        if (mc->state.current_limit_to_continuous) {
+          print_data("s05", 1, last_updated);
         }
-        if (mc->current_reduction_via_igbt_temp) {
-          print_data("current_reduction_via_igbt_temp", 1, last_updated);
+        if (mc->state.current_limited_via_switch) {
+          print_data("s17", 1, last_updated);
         }
-        if (mc->current_reduction_via_motor_temp) {
-          print_data("current_reduction_via_motor_temp", 1, last_updated);
+        if (mc->state.current_limited_via_switch) {
+          print_data("s20", 1, last_updated);
+        }
+        if (mc->state.active_current_reduction) {
+          print_data("s21", 1, last_updated);
+        }
+        if (mc->state.current_limited_via_speed) {
+          print_data("s22", 1, last_updated);
+        }
+        if (mc->state.current_limited_via_igbt_temp) {
+          print_data("s23", 1, last_updated);
+        }
+        if (mc->state.current_limited_to_continuous_via_igbt_temp) {
+          print_data("s24", 1, last_updated);
+        }
+        if (mc->state.current_reduction_low_frequency) {
+          print_data("s25", 1, last_updated);
+        }
+        if (mc->state.current_reduction_via_motor_temp) {
+          print_data("s26", 1, last_updated);
+        }
+        if (mc->state.current_reduction_via_analog_input) {
+          print_data("s27", 1, last_updated);
+        }
+        if (mc->state.current_acculator_limit_charged) {
+          print_data("s28", 1, last_updated);
         }
       }
-
       onboard->write_mc_data[i] = false;
     }
   }
 }
 
 void print_data(String prefix, int32_t data, uint32_t msTicks) {
+  uint32_t diff = msTicks - last_print_time;
+  last_print_time = msTicks;
   String line;
   line.concat(prefix);
   line.concat(",");
   line.concat(data);
   line.concat(",");
-  line.concat(msTicks);
+  line.concat(diff);
   Serial1.println(line);
 }
 
 void get_mc_name(MC_Request_Type type, String& output) {
   switch(type) {
     case I_CMD:
-      output.concat("I_CMD");
+      output.concat("x26");
       break;
     case I_CMD_AFTER_RAMP:
-      output.concat("I_CMD_AFTER_RAMP");
+      output.concat("x22");
       break;
     case I_ACTUAL:
-      output.concat("I_ACTUAL");
+      output.concat("x20");
       break;
     case I_ACTUAL_AFTER_DISPLAY:
-      output.concat("I_ACTUAL_AFTER_DISPLAY");
+      output.concat("x5F");
       break;
     case I_LIMIT_ACTUAL:
-      output.concat("I_LIMIT_ACTUAL");
+      output.concat("x48");
       break;
     case N_ACTUAL:
-      output.concat("N_ACTUAL");
+      output.concat("x30");
       break;
     case T_MOTOR:
-      output.concat("T_MOTOR");
+      output.concat("x49");
       break;
     case T_IGBT:
-      output.concat("T_IGBT");
+      output.concat("x4A");
       break;
     case T_AIR:
-      output.concat("T_AIR");
+      output.concat("x4B");
       break;
     case MC_REQUEST_LENGTH:
     case MC_STATE:
