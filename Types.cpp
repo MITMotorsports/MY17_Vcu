@@ -9,20 +9,21 @@ Can_MC_RegID_T Types_MC_Request_to_MC_Reg(MC_Request_Type request_type) {
     case I_CMD:
       return CAN_MC_REG_CURRENT_CMD;
       break;
+    case I_CMD_AFTER_RAMP:
+      return CAN_MC_REG_CURRENT_CMD_AFTER_RAMP;
+      break;
+
     case I_ACTUAL:
       return CAN_MC_REG_CURRENT_ACTUAL;
       break;
-
-    case V_OUT:
-      return CAN_MC_REG_OUTPUT_VOLTAGE;
-      break;
-    case V_RED:
-      return CAN_MC_REG_OUTPUT_VOLTAGE_LIMIT;
+    case I_ACTUAL_AFTER_DISPLAY:
+      return CAN_MC_REG_CURRENT_AFTER_DISPLAY;
       break;
 
-    case N_CMD:
-      return CAN_MC_REG_SPEED_CMD_BEFORE_RAMP;
+    case I_LIMIT_ACTUAL:
+      return CAN_MC_REG_CURRENT_LIMIT_ACTUAL;
       break;
+
     case N_ACTUAL:
       return CAN_MC_REG_SPEED_ACTUAL_RPM;
       break;
@@ -54,20 +55,21 @@ MC_Request_Type Types_MC_Reg_to_MC_Request(Can_MC_RegID_T reg) {
     case CAN_MC_REG_CURRENT_CMD:
       return I_CMD;
       break;
+    case CAN_MC_REG_CURRENT_CMD_AFTER_RAMP:
+      return I_CMD_AFTER_RAMP;
+      break;
+
     case CAN_MC_REG_CURRENT_ACTUAL:
       return I_ACTUAL;
       break;
-
-    case CAN_MC_REG_OUTPUT_VOLTAGE:
-      return V_OUT;
-      break;
-    case CAN_MC_REG_OUTPUT_VOLTAGE_LIMIT:
-      return V_RED;
+    case CAN_MC_REG_CURRENT_AFTER_DISPLAY:
+      return I_ACTUAL_AFTER_DISPLAY;
       break;
 
-    case CAN_MC_REG_SPEED_CMD_BEFORE_RAMP:
-      return N_CMD;
+    case CAN_MC_REG_CURRENT_LIMIT_ACTUAL:
+      return I_LIMIT_ACTUAL;
       break;
+
     case CAN_MC_REG_SPEED_ACTUAL_RPM:
       return N_ACTUAL;
       break;

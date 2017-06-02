@@ -35,11 +35,11 @@ typedef struct {
 
 // All names in the enum are taken from the NDrive manual
 typedef enum {
-  I_ACTUAL = 0,
-  I_CMD,
-  V_OUT,
-  V_RED,
-  N_CMD,
+  I_CMD = 0,
+  I_CMD_AFTER_RAMP,
+  I_ACTUAL,
+  I_ACTUAL_AFTER_DISPLAY,
+  I_LIMIT_ACTUAL,
   N_ACTUAL,
   T_MOTOR,
   T_IGBT,
