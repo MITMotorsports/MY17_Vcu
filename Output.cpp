@@ -7,7 +7,10 @@
 
 #include "MY17_Can_Library.h"
 
-uint32_t last_print_time = 0;
+#define DISABLE_LOG_PERIOD_MS 100UL
+static uint32_t last_disable_log_time_ms = 0;
+
+static uint32_t last_log_time_ms = 0;
 
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can);
 void handle_pins(Pin_Output_T *output);
@@ -57,93 +60,97 @@ void Output_empty_output(Input_T *input, State_T *state, Output_T *output) {
 }
 
 void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
+  // Don't bother logging if not driving
+  bool ready_to_drive = state->drive->ready_to_drive;
+
+  if (!ready_to_drive) {
+    if (last_disable_log_time_ms + DISABLE_LOG_PERIOD_MS < input->msTicks) {
+      last_disable_log_time_ms = input->msTicks;
+      print_data("DRIVE_DISABLED", 1, last_disable_log_time_ms);
+    }
+    return;
+  }
+
+  // We are driving, so log as normal
   Current_Sensor_Input_T *sensor = input->current_sensor;
+
+  // TODO HACK log current time instead of reading time
+  const uint32_t curr_time = input->msTicks;
 
   if (onboard->write_current_log) {
     onboard->write_current_log = false;
-    print_data("crt", sensor->current_mA, sensor->last_current_ms); //mA
+    print_data("crt", sensor->current_mA, curr_time); //mA
   }
   if (onboard->write_voltage_log) {
     onboard->write_voltage_log = false;
-    print_data("vlt", sensor->voltage_mV, sensor->last_voltage_ms); //mV
+    print_data("vlt", sensor->voltage_mV, curr_time); //mV
   }
   if (onboard->write_power_log) {
     onboard->write_power_log = false;
-    print_data("pwr", sensor->power_W, sensor->last_power_ms); //W
+    print_data("pwr", sensor->power_W, curr_time); //W
   }
 
   if (onboard->write_front_can_log) {
     Front_Can_Node_Input_T *front_can = input->front_can_node;
-    const uint32_t last_updated = front_can->last_updated;
+    // TODO HACK log current time instead of reading time
+    const uint32_t curr_time = input->msTicks;
 
     onboard->write_front_can_log = false;
-    print_data("trq", front_can->requested_torque, last_updated); //int16_t
-    print_data("brk", front_can->brake_pressure, last_updated); //uint8_t
+    print_data("trq", front_can->requested_torque, curr_time); //int16_t
+    print_data("brk", front_can->brake_pressure, curr_time); //uint8_t
   }
 
   if (onboard->write_fault_log) {
     onboard->write_fault_log = false;
 
     Bms_Input_T *bms = input->bms;
-    const uint32_t msTicks = input->msTicks;
+    const uint32_t curr_time = input->msTicks;
 
-    if (state->drive->ready_to_drive) {
-      // TODO Faults only relevant if driving?
-
-      bool dcdc_on_with_no_fault = bms->dcdc_enable && !bms->dcdc_fault;
-      if (!dcdc_on_with_no_fault) {
-        // print_data("FAULT_dcdc", 1, msTicks);
-      }
-    }
-
-    // TODO real todo here please make this separate timing loop
-    if (bms->highest_cell_temp_dC != 0) {
-      print_data("tmp", bms->highest_cell_temp_dC, msTicks); //dC
-    }
-    print_data("lcv", bms->lowest_cell_voltage_cV, msTicks); //cV
+    print_data("tmp", bms->highest_cell_temp_dC, curr_time); //dC
+    print_data("lcv", bms->lowest_cell_voltage_cV, curr_time); //cV
   }
 
   for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
     Mc_Input_T *mc = input->mc;
-    const uint32_t last_updated = mc->last_updated;
+    const uint32_t curr_time = input->msTicks;
     if (onboard->write_mc_data[i]) {
       String name;
       if (i != MC_STATE) {
         get_mc_name((MC_Request_Type)i, name);
-        print_data(name, mc->data[i], last_updated); //int16_t
+        print_data(name, mc->data[i], curr_time); //int16_t
       } else {
         if (mc->state.current_limit_to_continuous) {
-          print_data("s05", 1, last_updated);
+          print_data("s05", 1, curr_time);
+        }
+        if (mc->state.speed_limited_via_switch) {
+          print_data("s17", 1, curr_time);
         }
         if (mc->state.current_limited_via_switch) {
-          print_data("s17", 1, last_updated);
-        }
-        if (mc->state.current_limited_via_switch) {
-          print_data("s20", 1, last_updated);
+          print_data("s20", 1, curr_time);
         }
         if (mc->state.active_current_reduction) {
-          print_data("s21", 1, last_updated);
+          print_data("s21", 1, curr_time);
         }
         if (mc->state.current_limited_via_speed) {
-          print_data("s22", 1, last_updated);
+          print_data("s22", 1, curr_time);
         }
         if (mc->state.current_limited_via_igbt_temp) {
-          print_data("s23", 1, last_updated);
+          print_data("s23", 1, curr_time);
         }
         if (mc->state.current_limited_to_continuous_via_igbt_temp) {
-          print_data("s24", 1, last_updated);
+          print_data("s24", 1, curr_time);
         }
         if (mc->state.current_reduction_low_frequency) {
-          print_data("s25", 1, last_updated);
+          print_data("s25", 1, curr_time);
         }
         if (mc->state.current_reduction_via_motor_temp) {
-          print_data("s26", 1, last_updated);
+          print_data("s26", 1, curr_time);
         }
         if (mc->state.current_reduction_via_analog_input) {
-          print_data("s27", 1, last_updated);
+          print_data("s27", 1, curr_time);
         }
-        if (mc->state.current_acculator_limit_charged) {
-          print_data("s28", 1, last_updated);
+        if (mc->state.current_accumulator_limit_charged) {
+          print_data("s28", 1, curr_time);
         }
       }
       onboard->write_mc_data[i] = false;
@@ -152,14 +159,15 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
 }
 
 void print_data(String prefix, int32_t data, uint32_t msTicks) {
-  uint32_t diff = msTicks - last_print_time;
-  last_print_time = msTicks;
+  // TODO investigate using diff time
+  uint32_t diff = msTicks - last_log_time_ms;
+  last_log_time_ms = msTicks;
   String line;
   line.concat(prefix);
   line.concat(",");
   line.concat(data);
   line.concat(",");
-  line.concat(diff);
+  line.concat(msTicks);
   Serial1.println(line);
 }
 
