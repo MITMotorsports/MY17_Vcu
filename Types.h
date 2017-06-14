@@ -5,6 +5,7 @@
 
 #include <MY17_Can_Library.h>
 
+
 typedef struct {
   int16_t requested_torque;
   uint8_t brake_pressure;
@@ -15,6 +16,19 @@ typedef struct {
 typedef struct {
   uint32_t last_updated;
 } Rear_Can_Node_Input_T;
+
+typedef enum {
+  FL_WHEEL,
+  FR_WHEEL,
+  RL_WHEEL,
+  RR_WHEEL,
+  NUM_WHEELS
+} Wheel_T;
+
+typedef struct {
+  uint32_t rpm[NUM_WHEELS];
+  uint32_t last_updated[NUM_WHEELS];
+} Speed_Input_T;
 
 typedef struct {
   Can_Dash_RequestID_T request_type;
@@ -86,6 +100,7 @@ typedef struct {
 typedef struct {
   Front_Can_Node_Input_T *front_can_node;
   Rear_Can_Node_Input_T *rear_can_node;
+  Speed_Input_T *speed;
   Dash_Input_T *dash;
   Bms_Input_T *bms;
   Mc_Input_T *mc;
@@ -113,6 +128,7 @@ typedef struct {
   uint32_t last_vcu_mc_torque_ms;
   uint32_t last_front_can_log_ms;
   uint32_t last_fault_log_ms;
+  uint32_t last_speed_log_ms;
 } Message_State_T;
 
 typedef struct {
@@ -163,6 +179,7 @@ typedef struct {
   bool write_front_can_log;
   bool write_fault_log;
   bool write_mc_data[MC_REQUEST_LENGTH];
+  bool write_speed_log;
 } Onboard_Output_T;
 
 typedef struct {

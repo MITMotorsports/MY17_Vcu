@@ -22,6 +22,8 @@ void update_can(Input_T *input);
 void update_pins(Input_T *input);
 void process_front_can_node_driver_output(Input_T *input);
 void process_rear_can_node_heartbeat(Input_T *input);
+void process_front_can_node_wheel_speed(Input_T *input);
+void process_rear_can_node_wheel_speed(Input_T *input);
 void process_dash_heartbeat(Input_T *input);
 void process_dash_request(Input_T *input);
 void process_bms_heartbeat(Input_T *input);
@@ -68,8 +70,16 @@ void update_can(Input_T *input) {
       process_front_can_node_driver_output(input);
       break;
 
+    case Can_FrontCanNode_WheelSpeed_Msg:
+      process_front_can_node_wheel_speed(input);
+      break;
+
     case Can_RearCanNode_Heartbeat_Msg:
       process_rear_can_node_heartbeat(input);
+      break;
+
+    case Can_RearCanNode_WheelSpeed_Msg:
+      process_rear_can_node_wheel_speed(input);
       break;
 
     case Can_Dash_Heartbeat_Msg:
@@ -201,6 +211,11 @@ void Input_initialize(Input_T *input) {
 
   input->rear_can_node->last_updated = 0;
 
+  for(int wheel = 0; wheel < NUM_WHEELS; wheel++) {
+    input->speed->rpm[wheel] = 0;
+    input->speed->last_updated[wheel] = 0;
+  }
+
   input->dash->request_type = CAN_DASH_REQUEST_NO_REQUEST;
   input->dash->request_timestamp = 0;
   input->dash->last_updated = 0;
@@ -250,6 +265,26 @@ void process_front_can_node_driver_output(Input_T *input) {
   input->front_can_node->last_updated = input->msTicks;
 }
 
+void process_front_can_node_wheel_speed(Input_T *input) {
+  Can_FrontCanNode_WheelSpeed_T msg;
+  Can_FrontCanNode_WheelSpeed_Read(&msg);
+
+  input->speed->rpm[FL_WHEEL] = msg.front_left_wheel_speed_mRPM / 1000UL;
+  input->speed->rpm[FR_WHEEL] = msg.front_right_wheel_speed_mRPM / 1000UL;
+  input->speed->last_updated[FL_WHEEL] = input->msTicks;
+  input->speed->last_updated[FR_WHEEL] = input->msTicks;
+}
+
+void process_rear_can_node_wheel_speed(Input_T *input) {
+  Can_RearCanNode_WheelSpeed_T msg;
+  Can_RearCanNode_WheelSpeed_Read(&msg);
+
+  input->speed->rpm[RL_WHEEL] = msg.rear_left_wheel_speed_mRPM / 1000UL;
+  input->speed->rpm[RR_WHEEL] = msg.rear_right_wheel_speed_mRPM / 1000UL;
+  input->speed->last_updated[RL_WHEEL] = input->msTicks;
+  input->speed->last_updated[RR_WHEEL] = input->msTicks;
+}
+
 void process_rear_can_node_heartbeat(Input_T *input) {
   Can_RearCanNode_Heartbeat_T msg;
   Can_RearCanNode_Heartbeat_Read(&msg);
@@ -270,6 +305,13 @@ void process_dash_request(Input_T *input) {
 
   input->dash->request_type = msg.type;
   input->dash->request_timestamp = input->msTicks;
+
+  // TODO shitcode
+  // if (input->dash->request_type == CAN_DASH_REQUEST_RTD_ENABLE) {
+  //   digitalWrite(MC_ENABLE_PIN_OUT, HIGH);
+  // } else if (input->dash->request_type == CAN_DASH_REQUEST_RTD_DISABLE) {
+  //   digitalWrite(MC_ENABLE_PIN_OUT, LOW);
+  // }
 
   input->dash->last_updated = input->msTicks;
 }

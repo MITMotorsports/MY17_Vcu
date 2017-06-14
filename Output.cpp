@@ -48,6 +48,7 @@ void Output_initialize(Output_T *output) {
   for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
     output->onboard->write_mc_data[i] = false;
   }
+  output->onboard->write_speed_log = false;
 
   // TODO
   output->xbee->temp = false;
@@ -88,6 +89,14 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
   if (onboard->write_power_log) {
     onboard->write_power_log = false;
     print_data("pwr", sensor->power_W, curr_time); //W
+  }
+
+  if (onboard->write_speed_log) {
+    onboard->write_speed_log = false;
+    print_data("wfl", input->speed->rpm[FL_WHEEL], input->speed->last_updated[FL_WHEEL]);
+    print_data("wfr", input->speed->rpm[FR_WHEEL], input->speed->last_updated[FR_WHEEL]);
+    print_data("wrl", input->speed->rpm[RL_WHEEL], input->speed->last_updated[RL_WHEEL]);
+    print_data("wrr", input->speed->rpm[RR_WHEEL], input->speed->last_updated[RR_WHEEL]);
   }
 
   if (onboard->write_front_can_log) {
@@ -140,7 +149,8 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
         if (mc->state.current_limited_to_continuous_via_igbt_temp) {
           print_data("s24", 1, curr_time);
         }
-        if (mc->state.current_reduction_low_frequency) {
+        // Low frequency bit is true if no current reduction
+        if (!mc->state.current_reduction_low_frequency) {
           print_data("s25", 1, curr_time);
         }
         if (mc->state.current_reduction_via_motor_temp) {
