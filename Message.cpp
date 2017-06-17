@@ -80,20 +80,24 @@ void update_can_mc_torque(State_T *state, Output_T *output, uint32_t msTicks) {
   }
 }
 
+// TODO GIANT fucking hack please eventually fix all the motor request stuff
+static int curr_mc_request = 0;
+
 void update_can_mc_request(Input_T *input, State_T *state, Output_T *output) {
   const uint32_t msTicks = input->msTicks;
   uint32_t *last_msg = &state->message->last_vcu_mc_permanent_transmit_ms;
 
   if (period_reached(*last_msg, MC_SINGLE_REQUEST_PERIOD, msTicks)) {
     *last_msg = msTicks;
-    for (int i = 0; i < MC_REQUEST_LENGTH; i++) {
-      int next = (i + 1) % MC_REQUEST_LENGTH;
-      if (input->mc->last_mc_response_times[i] <= input->mc->last_mc_response_times[next]) {
-        // This is the next message type we want to request transmit of.
-        output->can->send_mc_permanent_request_msg[i] = true;
-        break;
-      }
+    output->can->send_mc_permanent_request_msg[curr_mc_request] = true;
+
+    // TODO HACK this is real bad
+    MC_Request_Type type = (MC_Request_Type)curr_mc_request;
+    if (type == I_CMD || type == I_ACTUAL_AFTER_DISPLAY || type == T_AIR) {
+      output->can->send_mc_permanent_request_msg[N_ACTUAL] = true;
     }
+
+    curr_mc_request = (curr_mc_request + 1) % MC_REQUEST_LENGTH;
   }
 }
 
