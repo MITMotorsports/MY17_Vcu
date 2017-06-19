@@ -6,6 +6,8 @@ void disable_drive(Drive_State_T *drive, Pin_Output_T *pin);
 void handle_dash_request(Input_T *input, State_T *state, Output_T *output);
 void handle_enable_request(Input_T *input, State_T *state, Output_T *output);
 void handle_disable_request(Drive_State_T *drive, Pin_Output_T *pin);
+void handle_active_aero_request(Drive_State_T *drive, Pin_Output_T *pin, bool state);
+void handle_data_flag_request(uint32_t msTicks);
 
 void Drive_update_drive(Input_T *input, State_T *state, Output_T *output)  {
   if (!state->precharge->hv_enabled) {
@@ -27,10 +29,6 @@ void disable_drive(Drive_State_T *drive, Pin_Output_T *pin) {
     // TODO remove this once fan logic better
     pin->fan = Action_OFF;
   }
-  if (drive->active_aero) {
-    drive->active_aero = false;
-    pin->wing = Action_OFF;
-  }
   if (drive->limp_mode) {
     drive->limp_mode = false;
     // TODO change whatever needs to be changed for limp mode
@@ -44,6 +42,15 @@ void handle_dash_request(Input_T *input, State_T *state, Output_T *output) {
       break;
     case CAN_DASH_REQUEST_RTD_DISABLE:
       disable_drive(state->drive, output->pin);
+      break;
+    case CAN_DASH_REQUEST_ACTIVE_AERO_ENABLE:
+      handle_active_aero_request(state->drive, output->pin, true);
+      break;
+    case CAN_DASH_REQUEST_ACTIVE_AERO_DISABLE:
+      handle_active_aero_request(state->drive, output->pin, false);
+      break;
+    case CAN_DASH_REQUEST_DATA_FLAG:
+      handle_data_flag_request(input->msTicks);
       break;
     default:
       // TODO respond to other request types
@@ -67,4 +74,20 @@ void handle_enable_request(Input_T *input, State_T *state, Output_T *output) {
     // TODO remove this once fan logic better
     output->pin->fan = Action_ON;
   }
+}
+
+void handle_active_aero_request(Drive_State_T *drive, Pin_Output_T *pin, bool state) {
+  if (state != drive->active_aero) {
+    drive->active_aero = state;
+    pin->wing = state ? Action_ON : Action_OFF;
+  }
+}
+
+void handle_data_flag_request(uint32_t msTicks) {
+  String line;
+  line.concat("DATA_FLAG,1,");
+  line.concat(msTicks);
+  Serial.println(line);
+  Serial1.println(line);
+  Serial2.println(line);
 }

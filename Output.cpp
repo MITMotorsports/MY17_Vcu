@@ -15,6 +15,7 @@ static uint32_t last_log_time_ms = 0;
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can);
 void handle_pins(Pin_Output_T *output);
 void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard);
+void handle_xbee(Input_T *input, State_T *state, Xbee_Output_T *xbee);
 
 void send_dash_msg(Input_T *input, State_T *state);
 void send_bms_msg(Input_T *input, State_T *state);
@@ -50,14 +51,14 @@ void Output_initialize(Output_T *output) {
   }
   output->onboard->write_speed_log = false;
 
-  // TODO
-  output->xbee->temp = false;
+  output->xbee->write_current_sense_log = false;
 }
 
 void Output_empty_output(Input_T *input, State_T *state, Output_T *output) {
   handle_can(input, state, output->can);
   handle_pins(output->pin);
   handle_onboard(input, state, output->onboard);
+  handle_xbee(input, state, output->xbee);
 }
 
 void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
@@ -165,6 +166,22 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
       }
       onboard->write_mc_data[i] = false;
     }
+  }
+}
+
+void handle_xbee(Input_T *input, State_T *state, Xbee_Output_T *xbee) {
+  if (xbee->write_current_sense_log) {
+    xbee->write_current_sense_log = false;
+    String line;
+    line.concat("vlt, ");
+    line.concat(input->current_sensor->voltage_mV / 1000);
+    line.concat(", crt, ");
+    line.concat(input->current_sensor->current_mA / 1000);
+    line.concat(", pwr, ");
+    line.concat(input->current_sensor->power_W / 1000);
+    line.concat(", ms, ");
+    line.concat(input->msTicks);
+    Serial2.println(line);
   }
 }
 
