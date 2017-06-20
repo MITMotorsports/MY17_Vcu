@@ -91,6 +91,10 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
     onboard->write_power_log = false;
     print_data("pwr", sensor->power_W, curr_time); //W
   }
+  if (onboard->write_energy_log) {
+    onboard->write_energy_log = false;
+    print_data("egy", sensor->energy_Wh, curr_time);
+  }
 
   if (onboard->write_speed_log) {
     onboard->write_speed_log = false;
@@ -179,6 +183,8 @@ void handle_xbee(Input_T *input, State_T *state, Xbee_Output_T *xbee) {
     line.concat(input->current_sensor->current_mA / 1000);
     line.concat(", pwr, ");
     line.concat(input->current_sensor->power_W / 1000);
+    line.concat(", egy, ");
+    line.concat(input->current_sensor->energy_Wh);
     line.concat(", ms, ");
     line.concat(input->msTicks);
     Serial2.println(line);
