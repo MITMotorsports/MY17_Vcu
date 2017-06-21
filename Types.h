@@ -118,7 +118,7 @@ typedef struct {
 typedef struct {
   bool ready_to_drive;
   bool active_aero;
-  bool limp_mode;
+  Can_Vcu_LimpState_T limp_mode;
 } Drive_State_T;
 
 typedef struct {

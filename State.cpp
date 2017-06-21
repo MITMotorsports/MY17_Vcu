@@ -24,7 +24,7 @@ void State_initialize(State_T *state) {
 
   state->drive->ready_to_drive = false;
   state->drive->active_aero = false;
-  state->drive->limp_mode = false;
+  state->drive->limp_mode = CAN_LIMP_NORMAL;
 
   state->message->last_vcu_bms_heartbeat_ms = 0;
   state->message->last_vcu_dash_heartbeat_ms = 0;

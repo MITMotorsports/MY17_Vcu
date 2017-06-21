@@ -275,7 +275,7 @@ void send_dash_msg(Input_T *input, State_T *state) {
   // TODO
   msg.traction_control = false;
 
-  msg.limp_mode = state->drive->limp_mode;
+  msg.limp_mode = !(state->drive->limp_mode == CAN_LIMP_NORMAL);
 
   // TODO
   msg.lv_warning = false;
@@ -310,6 +310,7 @@ void send_dash_msg(Input_T *input, State_T *state) {
   msg.master_reset_not_initialized = !state->other->master_reset_initialized;
   msg.driver_reset_not_initialized = !state->other->driver_reset_initialized;
   msg.lv_battery_voltage = input->shutdown->lv_voltage;
+  msg.limp_state = state->drive->limp_mode;
   Can_Vcu_DashHeartbeat_Write(&msg);
 }
 
