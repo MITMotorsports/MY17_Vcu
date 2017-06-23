@@ -177,15 +177,17 @@ void handle_xbee(Input_T *input, State_T *state, Xbee_Output_T *xbee) {
   if (xbee->write_current_sense_log) {
     xbee->write_current_sense_log = false;
     String line;
-    line.concat("vlt, ");
+    line.concat("V_");
     line.concat(input->current_sensor->voltage_mV / 1000);
-    line.concat(", crt, ");
-    line.concat(input->current_sensor->current_mA / 1000);
-    line.concat(", pwr, ");
+    line.concat(", L_");
+    line.concat(input->bms->lowest_cell_voltage_cV);
+    line.concat(", K_");
     line.concat(input->current_sensor->power_W / 1000);
-    line.concat(", egy, ");
+    line.concat(", E_");
     line.concat(input->current_sensor->energy_Wh);
-    line.concat(", ms, ");
+    line.concat(", T_");
+    line.concat(input->bms->highest_cell_temp_dC);
+    line.concat(", ms_");
     line.concat(input->msTicks);
     Serial2.println(line);
   }
