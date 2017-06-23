@@ -13,7 +13,11 @@ void Drive_update_drive(Input_T *input, State_T *state, Output_T *output)  {
   if (!state->precharge->hv_enabled) {
     // All drive states should go off if hv is off
     disable_drive(state->drive, output->pin);
-    return;
+    // Don't want to even process RTD requests if HV off
+    Can_Dash_RequestID_T type = input->dash->request_type;
+    if (type == CAN_DASH_REQUEST_RTD_ENABLE || type == CAN_DASH_REQUEST_RTD_DISABLE) {
+      return;
+    }
   }
   if (input->dash->request_timestamp == input->msTicks) {
     // Got a message from the dash so maybe update state
@@ -44,9 +48,11 @@ void handle_dash_request(Input_T *input, State_T *state, Output_T *output) {
       disable_drive(state->drive, output->pin);
       break;
     case CAN_DASH_REQUEST_ACTIVE_AERO_ENABLE:
+      Serial.println("AERO ENGAGE");
       handle_active_aero_request(state->drive, output->pin, true);
       break;
     case CAN_DASH_REQUEST_ACTIVE_AERO_DISABLE:
+      Serial.println("AERO RELEASE");
       handle_active_aero_request(state->drive, output->pin, false);
       break;
     case CAN_DASH_REQUEST_DATA_FLAG:
