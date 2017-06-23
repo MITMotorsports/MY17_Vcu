@@ -25,6 +25,7 @@ void Drive_update_drive(Input_T *input, State_T *state, Output_T *output)  {
   if (input->dash->request_timestamp == input->msTicks) {
     // Got a message from the dash so maybe update state
     handle_dash_request(input, state, output);
+    input->dash->request_type = CAN_DASH_REQUEST_NO_REQUEST;
   }
 }
 
