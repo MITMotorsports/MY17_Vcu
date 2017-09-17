@@ -300,9 +300,6 @@ void send_torque_cmd_msg(Input_T *input, State_T *state) {
   Can_Vcu_MCTorque_T msg;
   msg.torque_cmd = input->front_can_node->requested_torque;
 
-  // HACK Motor is mounted backwards lolz
-  msg.torque_cmd = -1 * msg.torque_cmd;
-
   Can_Vcu_MCTorque_Write(&msg);
 }
 
