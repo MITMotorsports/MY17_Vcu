@@ -72,6 +72,7 @@ void Dispatch_begin() {
   // Start event loop
   Serial.println("Started VCU");
   Serial1.println("CAR POWERED ON");
+  Serial2.println("CAR POWERED ON");
 }
 
 void Dispatch_run() {

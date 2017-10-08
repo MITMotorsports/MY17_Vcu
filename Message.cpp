@@ -9,8 +9,11 @@
 #define FAULT_LOG_PERIOD_MS 1000UL
 #define SPEED_LOG_PERIOD_MS 50UL
 
+#define XBEE_CURRENT_SENSE_LOG_PERIOD_MS 100UL
+
 void update_can(Input_T *input, State_T *state, Output_T *output);
 void update_onboard(Input_T *input, State_T *state, Output_T *output);
+void update_xbee(Input_T *input, State_T *state, Output_T *output);
 
 void update_can_bms_heartbeat(State_T *state, Output_T *output, uint32_t msTicks);
 void update_can_dash_heartbeat(State_T *state, Output_T *output, uint32_t msTicks);
@@ -23,11 +26,14 @@ void update_onboard_mc_response(Input_T *input, State_T *state, Output_T *output
 void update_onboard_fault(State_T *state, Output_T *output, uint32_t msTicks);
 void update_onboard_speed(State_T *state, Output_T *output, uint32_t msTicks);
 
+void update_xbee_current_sense(State_T *state, Output_T *output, uint32_t msTicks);
+
 bool period_reached(uint32_t start, uint32_t period, uint32_t msTicks);
 
 void Message_update_message(Input_T *input, State_T *state, Output_T *output) {
   update_can(input, state, output);
   update_onboard(input, state, output);
+  update_xbee(input, state, output);
 }
 
 void update_can(Input_T *input, State_T *state, Output_T *output) {
@@ -45,6 +51,10 @@ void update_onboard(Input_T *input, State_T *state, Output_T *output) {
   update_onboard_mc_response(input, state, output);
   update_onboard_fault(state, output, input->msTicks);
   update_onboard_speed(state, output, input->msTicks);
+}
+
+void update_xbee(Input_T *input, State_T *state, Output_T *output) {
+  update_xbee_current_sense(state, output, input->msTicks);
 }
 
 void update_can_bms_heartbeat(State_T *state, Output_T *output, uint32_t msTicks) {
@@ -158,6 +168,15 @@ void update_onboard_speed(State_T *state, Output_T *output, uint32_t msTicks) {
   if(period_reached(*last_msg, SPEED_LOG_PERIOD_MS, msTicks)) {
     *last_msg = msTicks;
     output->onboard->write_speed_log = true;
+  }
+}
+
+void update_xbee_current_sense(State_T *state, Output_T *output, uint32_t msTicks) {
+  uint32_t *last_msg = &state->message->last_xbee_current_sense_log_ms;
+
+  if(period_reached(*last_msg, XBEE_CURRENT_SENSE_LOG_PERIOD_MS, msTicks)) {
+    *last_msg = msTicks;
+    output->xbee->write_current_sense_log = true;
   }
 }
 

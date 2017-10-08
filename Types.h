@@ -118,7 +118,7 @@ typedef struct {
 typedef struct {
   bool ready_to_drive;
   bool active_aero;
-  bool limp_mode;
+  Can_Vcu_LimpState_T limp_mode;
 } Drive_State_T;
 
 typedef struct {
@@ -129,6 +129,7 @@ typedef struct {
   uint32_t last_front_can_log_ms;
   uint32_t last_fault_log_ms;
   uint32_t last_speed_log_ms;
+  uint32_t last_xbee_current_sense_log_ms;
 } Message_State_T;
 
 typedef struct {
@@ -183,8 +184,7 @@ typedef struct {
 } Onboard_Output_T;
 
 typedef struct {
-  // TODO
-  bool temp;
+  bool write_current_sense_log;
 } Xbee_Output_T;
 
 typedef struct {

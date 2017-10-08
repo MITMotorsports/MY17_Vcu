@@ -15,6 +15,7 @@ static uint32_t last_log_time_ms = 0;
 void handle_can(Input_T *input, State_T *state, Can_Output_T *can);
 void handle_pins(Pin_Output_T *output);
 void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard);
+void handle_xbee(Input_T *input, State_T *state, Xbee_Output_T *xbee);
 
 void send_dash_msg(Input_T *input, State_T *state);
 void send_bms_msg(Input_T *input, State_T *state);
@@ -50,14 +51,14 @@ void Output_initialize(Output_T *output) {
   }
   output->onboard->write_speed_log = false;
 
-  // TODO
-  output->xbee->temp = false;
+  output->xbee->write_current_sense_log = false;
 }
 
 void Output_empty_output(Input_T *input, State_T *state, Output_T *output) {
   handle_can(input, state, output->can);
   handle_pins(output->pin);
   handle_onboard(input, state, output->onboard);
+  handle_xbee(input, state, output->xbee);
 }
 
 void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
@@ -89,6 +90,10 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
   if (onboard->write_power_log) {
     onboard->write_power_log = false;
     print_data("pwr", sensor->power_W, curr_time); //W
+  }
+  if (onboard->write_energy_log) {
+    onboard->write_energy_log = false;
+    print_data("egy", sensor->energy_Wh, curr_time);
   }
 
   if (onboard->write_speed_log) {
@@ -165,6 +170,26 @@ void handle_onboard(Input_T *input, State_T *state, Onboard_Output_T *onboard) {
       }
       onboard->write_mc_data[i] = false;
     }
+  }
+}
+
+void handle_xbee(Input_T *input, State_T *state, Xbee_Output_T *xbee) {
+  if (xbee->write_current_sense_log) {
+    xbee->write_current_sense_log = false;
+    String line;
+    line.concat("V_");
+    line.concat(input->current_sensor->voltage_mV / 1000);
+    line.concat(", L_");
+    line.concat(input->bms->lowest_cell_voltage_cV);
+    line.concat(", K_");
+    line.concat(input->current_sensor->power_W / 1000);
+    line.concat(", E_");
+    line.concat(input->current_sensor->energy_Wh);
+    line.concat(", T_");
+    line.concat(input->bms->highest_cell_temp_dC);
+    line.concat(", ms_");
+    line.concat(input->msTicks);
+    Serial2.println(line);
   }
 }
 
@@ -252,7 +277,7 @@ void send_dash_msg(Input_T *input, State_T *state) {
   // TODO
   msg.traction_control = false;
 
-  msg.limp_mode = state->drive->limp_mode;
+  msg.limp_mode = !(state->drive->limp_mode == CAN_LIMP_NORMAL);
 
   // TODO
   msg.lv_warning = false;
@@ -287,6 +312,7 @@ void send_dash_msg(Input_T *input, State_T *state) {
   msg.master_reset_not_initialized = !state->other->master_reset_initialized;
   msg.driver_reset_not_initialized = !state->other->driver_reset_initialized;
   msg.lv_battery_voltage = input->shutdown->lv_voltage;
+  msg.limp_state = state->drive->limp_mode;
   Can_Vcu_DashHeartbeat_Write(&msg);
 }
 
